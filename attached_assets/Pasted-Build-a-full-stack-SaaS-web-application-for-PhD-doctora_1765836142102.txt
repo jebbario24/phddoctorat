@@ -1,0 +1,98 @@
+Build a full‑stack SaaS web application for PhD/doctoral students to manage and write their thesis from start to finish.
+
+Main goals:
+
+Help students create a clear thesis structure (chapters, sections, milestones, deadlines).
+
+Use AI to assist with writing (outlines, drafts, rewriting, summarizing) while respecting academic integrity and avoiding plagiarism.
+
+Centralize everything in one dashboard: tasks, versions, supervisor feedback, references, and documents.​
+
+Core features:
+
+Onboarding
+
+Sign up / login (email + password, later OAuth).
+
+Choose study level (Master/PhD), field, and thesis language.
+
+Simple wizard to define topic, research questions, and objectives.
+
+Thesis Planner
+
+Visual timeline of the thesis with milestones (proposal, literature review, methods, results, discussion, submission).
+
+Kanban/board or checklist of tasks per chapter.
+
+Deadline management with progress percentage.​
+
+AI Writing Workspace
+
+Editor like Google Docs with:
+
+“Generate outline for this chapter”
+
+“Rewrite this paragraph in academic tone”
+
+“Summarize these notes into 3–4 bullet points”
+
+“Suggest structure for literature review/methodology/results”
+
+Highlight text → ask AI to improve clarity or coherence.
+
+Show word count per chapter and overall.​
+
+Reference & PDF helper (v1 simple, v2 advanced)
+
+Let users upload PDFs of papers.
+
+AI can: extract key points, quotes, and suggested citations for each paper; generate short summaries.
+
+Basic reference list manager (APA/MLA/Chicago) with export.​
+
+Supervisor collaboration
+
+Share‑link or supervisor account with read‑only or comment permissions.
+
+Commenting on paragraphs and chapters.
+
+Status per chapter: “draft”, “under review”, “revised”, “final”.​
+
+Integrity and plagiarism support
+
+Add checks and warnings about plagiarism and over‑reliance on AI.
+
+Integrate with or leave hooks for plagiarism APIs in the future.​
+
+Multi‑tenant SaaS
+
+Multi‑tenant architecture where each user (or institution) has isolated data.
+
+Billing module: free plan with limited projects/words, paid plans with more projects, more AI tokens, and collaboration features.
+
+Admin dashboard to see active users, usage, and subscriptions.
+
+Tech requirements:
+
+Modern TypeScript stack (React or Next.js frontend, Node.js/Express/Nest backend, Postgres DB).
+
+Authentication, role‑based access (student, supervisor, admin).
+
+Clean API layer for AI calls (can plug any LLM provider).
+
+Responsive UI with a clean dashboard similar to modern academic/thesis tools like Paperpal/Yomu (minimal, light, focus on writing space).​
+
+Deliver:
+
+Database schema (tables: users, institutions, theses, chapters, tasks, documents, comments, references, plans/subscriptions, usage).
+
+Backend endpoints and basic implementation for all features.
+
+Frontend pages and components: landing page, signup/login, thesis dashboard, planner, editor, references, settings, billing.
+
+Seed data for demo (1–2 example theses).
+
+Clear README with how to run frontend, backend, and how to plug in an AI provider key.
+
+Extra angle that differentiates you
+You can also tell Antigravity that your SaaS should focus on project management + supervision workflow (deadlines, status, comments) because many existing AI tools only help with writing, not with time management and advisor communication.
