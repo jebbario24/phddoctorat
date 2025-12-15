@@ -27,7 +27,7 @@ export default function Onboarding() {
   const { toast } = useToast();
   const [step, setStep] = useState(1);
   const totalSteps = 4;
-  
+
   const [data, setData] = useState<OnboardingData>({
     studyLevel: "",
     field: "",
@@ -106,7 +106,7 @@ export default function Onboarding() {
       <div className="w-full max-w-2xl">
         <div className="flex items-center justify-center gap-2 mb-8">
           <GraduationCap className="h-8 w-8 text-primary" />
-          <span className="text-2xl font-semibold">ThesisFlow</span>
+          <span className="text-2xl font-semibold">Thesard by Amal Mouaki</span>
         </div>
 
         <div className="mb-8">

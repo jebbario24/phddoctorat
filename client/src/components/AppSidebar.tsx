@@ -54,7 +54,7 @@ export function AppSidebar() {
       <SidebarHeader className="p-4">
         <Link href="/dashboard" className="flex items-center gap-2">
           <GraduationCap className="h-7 w-7 text-primary" />
-          <span className="text-lg font-semibold">ThesisFlow</span>
+          <span className="text-lg font-semibold">Thesard by Amal Mouaki</span>
         </Link>
       </SidebarHeader>
 

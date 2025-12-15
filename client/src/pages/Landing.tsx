@@ -78,7 +78,7 @@ export default function Landing() {
         <div className="max-w-7xl mx-auto px-4 lg:px-8 flex h-16 items-center justify-between gap-4">
           <div className="flex items-center gap-2" data-testid="logo-thesisflow">
             <GraduationCap className="h-8 w-8 text-primary" />
-            <span className="text-xl font-semibold">ThesisFlow</span>
+            <span className="text-xl font-semibold">Thesard by Amal Mouaki</span>
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
@@ -105,7 +105,7 @@ export default function Landing() {
                 <span className="text-primary">Simplified</span>
               </h1>
               <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-                The all-in-one platform for PhD and Master's students. Plan your milestones, 
+                The all-in-one platform for PhD and Master's students. Plan your milestones,
                 write with AI assistance, and collaborate with supervisors—all in one place.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -133,7 +133,7 @@ export default function Landing() {
                 Everything You Need to Succeed
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                From planning to submission, ThesisFlow provides the tools academic writers need.
+                From planning to submission, Thesard by Amal Mouaki provides the tools academic writers need.
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -189,8 +189,8 @@ export default function Landing() {
                   Focus on Writing, Not Managing
                 </h2>
                 <p className="text-muted-foreground mb-6">
-                  Thesis writing is hard enough. Don't let scattered files, missed deadlines, 
-                  and isolation slow you down. ThesisFlow centralizes everything so you can 
+                  Thesis writing is hard enough. Don't let scattered files, missed deadlines,
+                  and isolation slow you down. Thesard by Amal Mouaki centralizes everything so you can
                   focus on what matters most—your research.
                 </p>
                 <ul className="space-y-3">
@@ -246,7 +246,7 @@ export default function Landing() {
               Ready to Transform Your Thesis Experience?
             </h2>
             <p className="text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Join thousands of graduate students who are writing smarter, not harder. 
+              Join thousands of graduate students who are writing smarter, not harder.
               Start your free account today.
             </p>
             <Button size="lg" className="gap-2" asChild data-testid="button-cta-final">
@@ -265,7 +265,7 @@ export default function Landing() {
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <GraduationCap className="h-6 w-6 text-primary" />
-                <span className="font-semibold">ThesisFlow</span>
+                <span className="font-semibold">Thesard by Amal Mouaki</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 AI-powered thesis management for academic excellence.
@@ -297,7 +297,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="mt-8 pt-8 border-t text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} ThesisFlow. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} Thesard by Amal Mouaki. All rights reserved.</p>
           </div>
         </div>
       </footer>
