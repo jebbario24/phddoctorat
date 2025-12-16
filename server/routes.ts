@@ -737,7 +737,7 @@ export async function registerRoutes(
 
   const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 4 * 1024 * 1024 } // Reduced to 4MB to be safe
+    limits: { fileSize: 50 * 1024 * 1024 } // Increased to 50MB for large theses
   });
 
   app.post("/api/documents/upload", isAuthenticated, upload.single("file"), async (req: any, res) => {
