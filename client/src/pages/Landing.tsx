@@ -14,6 +14,7 @@ import {
   ArrowRight,
   GraduationCap,
 } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Landing() {
   const features = [
@@ -83,10 +84,10 @@ export default function Landing() {
           <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button variant="ghost" asChild data-testid="link-login">
-              <a href="/api/login">Log In</a>
+              <Link href="/auth">Log In</Link>
             </Button>
             <Button asChild data-testid="button-get-started">
-              <a href="/api/login">Get Started</a>
+              <Link href="/auth">Get Started</Link>
             </Button>
           </div>
         </div>
@@ -110,10 +111,10 @@ export default function Landing() {
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button size="lg" className="gap-2" asChild data-testid="button-start-free">
-                  <a href="/api/login">
+                  <Link href="/auth">
                     Start Your Thesis Free
                     <ArrowRight className="h-4 w-4" />
-                  </a>
+                  </Link>
                 </Button>
                 <Button size="lg" variant="outline" data-testid="button-learn-more">
                   Learn More
@@ -250,10 +251,10 @@ export default function Landing() {
               Start your free account today.
             </p>
             <Button size="lg" className="gap-2" asChild data-testid="button-cta-final">
-              <a href="/api/login">
+              <Link href="/auth">
                 Get Started Free
                 <ArrowRight className="h-4 w-4" />
-              </a>
+              </Link>
             </Button>
           </div>
         </section>

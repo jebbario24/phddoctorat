@@ -33,6 +33,7 @@ export const users = pgTable("users", {
   studyLevel: varchar("study_level"), // 'masters' | 'phd'
   field: varchar("field"),
   language: varchar("language"),
+  password: text("password"),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -137,6 +138,18 @@ export const sharedAccess = pgTable("shared_access", {
   expiresAt: timestamp("expires_at"),
 });
 
+// Documents table for RAG
+export const documents = pgTable("documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  thesisId: varchar("thesis_id").notNull().references(() => theses.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(),
+  content: text("content").notNull(), // Extracted text
+  filename: varchar("filename").notNull(),
+  mimeType: varchar("mime_type").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   theses: many(theses),
@@ -153,7 +166,39 @@ export const thesesRelations = relations(theses, ({ one, many }) => ({
   milestones: many(milestones),
   references: many(references),
   sharedAccess: many(sharedAccess),
+  documents: many(documents),
 }));
+
+// ...
+
+export const sharedAccessRelations = relations(sharedAccess, ({ one }) => ({
+  thesis: one(theses, {
+    fields: [sharedAccess.thesisId],
+    references: [theses.id],
+  }),
+}));
+
+export const documentsRelations = relations(documents, ({ one }) => ({
+  thesis: one(theses, {
+    fields: [documents.thesisId],
+    references: [theses.id],
+  }),
+}));
+
+// Insert schemas
+// ...
+
+export const insertDocumentSchema = createInsertSchema(documents).omit({
+  id: true,
+  createdAt: true,
+});
+
+// ...
+
+
+
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = typeof documents.$inferSelect;
 
 export const chaptersRelations = relations(chapters, ({ one, many }) => ({
   thesis: one(theses, {
@@ -200,12 +245,7 @@ export const referencesRelations = relations(references, ({ one }) => ({
   }),
 }));
 
-export const sharedAccessRelations = relations(sharedAccess, ({ one }) => ({
-  thesis: one(theses, {
-    fields: [sharedAccess.thesisId],
-    references: [theses.id],
-  }),
-}));
+
 
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({

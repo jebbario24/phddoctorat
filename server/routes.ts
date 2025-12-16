@@ -1,10 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 import OpenAI from "openai";
 import { randomUUID } from "crypto";
 import { z } from "zod";
+import multer from "multer";
+import pdf from "pdf-parse";
+
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = process.env.OPENAI_API_KEY
@@ -117,7 +121,7 @@ export async function registerRoutes(
   // Auth routes
   app.get("/api/auth/user", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -134,7 +138,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { studyLevel, field, language, thesisTitle, topic, researchQuestions, objectives } = parsed.data;
 
       // Update user profile
@@ -166,7 +170,7 @@ export async function registerRoutes(
   // Dashboard
   app.get("/api/dashboard", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -215,7 +219,7 @@ export async function registerRoutes(
   // Planner
   app.get("/api/planner", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -238,7 +242,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -270,7 +274,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -321,7 +325,7 @@ export async function registerRoutes(
   // Tasks
   app.get("/api/tasks", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -344,7 +348,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -402,7 +406,7 @@ export async function registerRoutes(
   // Editor
   app.get("/api/editor", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -425,7 +429,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -491,6 +495,19 @@ export async function registerRoutes(
         return res.json({ response: "AI assistance is not configured. Please add your OpenAI API key." });
       }
 
+      const userId = req.user.id;
+      const thesis = await storage.getThesisByUserId(userId);
+      let context = "";
+
+      if (thesis) {
+        const docs = await storage.getDocumentsByThesisId(thesis.id);
+        if (docs.length > 0) {
+          // Limit content length to avoid context overflow, simple RAG for now
+          const docContent = docs.map((d, i) => `[${i + 1}] ${d.title} (Filename: ${d.filename}):\n${d.content.substring(0, 1500)}...`).join("\n\n");
+          context = `\n\nREFERENCE DOCUMENTS:\n${docContent} \n\nINSTRUCTIONS FOR USING REFERENCES: \n - Use the information from the documents above to answer the user request.\n - Cite the documents using the format (N) where N is the reference number, e.g. (1).\n - If you use information from a document, you MUST cite it.\n - At the end of your response, list the references you used.`;
+        }
+      }
+
       const { action, chapterTitle, content, prompt } = parsed.data;
 
       let systemPrompt = "You are an academic writing assistant helping PhD and Master's students with their thesis. ";
@@ -515,10 +532,10 @@ export async function registerRoutes(
       const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [
-          { role: "system", content: systemPrompt },
+          { role: "system", content: systemPrompt + context },
           {
             role: "user",
-            content: `Chapter: ${chapterTitle}\n\nContent:\n${content || "(empty)"}\n\nRequest: ${prompt}`,
+            content: `Chapter: ${chapterTitle} \n\nContent: \n${content || "(empty)"} \n\nRequest: ${prompt} `,
           },
         ],
         max_completion_tokens: 2048,
@@ -534,7 +551,7 @@ export async function registerRoutes(
   // References
   app.get("/api/references", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -556,7 +573,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -598,7 +615,7 @@ export async function registerRoutes(
   // Settings
   app.get("/api/settings", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       const thesis = await storage.getThesisByUserId(userId);
 
@@ -621,7 +638,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { firstName, lastName, studyLevel, field } = parsed.data;
 
       const user = await storage.updateUser(userId, {
@@ -645,7 +662,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -669,7 +686,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
 
       if (!thesis) {
@@ -701,6 +718,65 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Error revoking access:", error);
       res.status(500).json({ message: "Failed to revoke access" });
+    }
+  });
+
+  // Documents
+  app.get("/api/documents", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const thesis = await storage.getThesisByUserId(userId);
+      if (!thesis) return res.json([]);
+      const docs = await storage.getDocumentsByThesisId(thesis.id);
+      res.json(docs);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(500).json({ message: "Failed to fetch documents" });
+    }
+  });
+
+  app.post("/api/documents/upload", isAuthenticated, upload.single("file"), async (req: any, res) => {
+    try {
+      if (!req.file) return res.status(400).send("No file uploaded");
+
+      const userId = req.user.id;
+      const thesis = await storage.getThesisByUserId(userId);
+      if (!thesis) return res.status(400).send("No thesis found");
+
+      let content = "";
+      if (req.file.mimetype === "application/pdf") {
+        const data = await pdf(req.file.buffer);
+        content = data.text;
+      } else {
+        content = req.file.buffer.toString("utf-8");
+      }
+
+      // Limit content size just in case, though DB text can invoke TOAST
+      // But we generally want full text for AI.
+
+      const doc = await storage.createDocument({
+        thesisId: thesis.id,
+        userId,
+        title: req.body.title || req.file.originalname,
+        filename: req.file.originalname,
+        mimeType: req.file.mimetype,
+        content
+      });
+      res.json(doc);
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(500).send("Upload failed");
+    }
+  });
+
+  app.delete("/api/documents/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteDocument(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Delete error:", error);
+      res.status(500).send("Delete failed");
     }
   });
 

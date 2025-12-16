@@ -17,6 +17,7 @@ import Tasks from "@/pages/Tasks";
 import Editor from "@/pages/Editor";
 import References from "@/pages/References";
 import Settings from "@/pages/Settings";
+import Auth from "@/pages/Auth";
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   const style = {
@@ -54,6 +55,7 @@ function Router() {
   if (!isAuthenticated) {
     return (
       <Switch>
+        <Route path="/auth" component={Auth} />
         <Route path="/" component={Landing} />
         <Route component={Landing} />
       </Switch>

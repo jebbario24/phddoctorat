@@ -23,6 +23,10 @@ import {
   type InsertReference,
   type SharedAccess,
   type InsertSharedAccess,
+
+  documents,
+  type Document,
+  type InsertDocument,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, asc } from "drizzle-orm";
@@ -31,6 +35,8 @@ import { randomUUID } from "crypto";
 export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
   upsertUser(user: UpsertUser): Promise<User>;
   updateUser(id: string, data: Partial<UpsertUser>): Promise<User | undefined>;
 
@@ -75,12 +81,27 @@ export interface IStorage {
   getSharedAccessByToken(token: string): Promise<SharedAccess | undefined>;
   createSharedAccess(access: InsertSharedAccess): Promise<SharedAccess>;
   deleteSharedAccess(id: string): Promise<void>;
+
+  // Document operations
+  getDocumentsByThesisId(thesisId: string): Promise<Document[]>;
+  createDocument(doc: InsertDocument): Promise<Document>;
+  deleteDocument(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
     return user;
   }
 
@@ -277,6 +298,20 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSharedAccess(id: string): Promise<void> {
     await db.delete(sharedAccess).where(eq(sharedAccess.id, id));
+  }
+
+  // Document operations
+  async getDocumentsByThesisId(thesisId: string): Promise<Document[]> {
+    return db.select().from(documents).where(eq(documents.thesisId, thesisId));
+  }
+
+  async createDocument(doc: InsertDocument): Promise<Document> {
+    const [document] = await db.insert(documents).values(doc).returning();
+    return document;
+  }
+
+  async deleteDocument(id: string): Promise<void> {
+    await db.delete(documents).where(eq(documents.id, id));
   }
 }
 
