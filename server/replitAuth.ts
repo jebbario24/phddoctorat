@@ -12,7 +12,7 @@ const getOidcConfig = memoize(
   async () => {
     return await client.discovery(
       new URL(process.env.ISSUER_URL ?? "https://replit.com/oidc"),
-      process.env.REPL_ID!
+      process.env.REPL_ID || "dummy-repl-id" // Fallback to avoid crash on Render
     );
   },
   { maxAge: 3600 * 1000 }
@@ -120,7 +120,7 @@ export async function setupAuth(app: Express) {
     req.logout(() => {
       res.redirect(
         client.buildEndSessionUrl(config, {
-          client_id: process.env.REPL_ID!,
+          client_id: process.env.REPL_ID || "dummy-repl-id",
           post_logout_redirect_uri: `${req.protocol}://${req.hostname}`,
         }).href
       );
