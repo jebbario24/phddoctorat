@@ -8,6 +8,7 @@ import {
   references,
   sharedAccess,
   type User,
+  type InsertUser,
   type UpsertUser,
   type Thesis,
   type InsertThesis,

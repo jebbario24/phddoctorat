@@ -8,7 +8,7 @@ import { z } from "zod";
 import multer from "multer";
 import pdf from "pdf-parse";
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024 } });
+
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = process.env.OPENAI_API_KEY
@@ -735,25 +735,50 @@ export async function registerRoutes(
     }
   });
 
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 4 * 1024 * 1024 } // Reduced to 4MB to be safe
+  });
+
   app.post("/api/documents/upload", isAuthenticated, upload.single("file"), async (req: any, res) => {
     try {
-      if (!req.file) return res.status(400).send("No file uploaded");
+      console.log("Upload request received");
+      if (!req.file) {
+        console.log("No file in request");
+        return res.status(400).send("No file uploaded");
+      }
+
+      console.log(`File info: ${req.file.originalname}, ${req.file.mimetype}, ${req.file.size} bytes`);
 
       const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
-      if (!thesis) return res.status(400).send("No thesis found");
-
-      let content = "";
-      if (req.file.mimetype === "application/pdf") {
-        const data = await pdf(req.file.buffer);
-        content = data.text;
-      } else {
-        content = req.file.buffer.toString("utf-8");
+      if (!thesis) {
+        console.log("No thesis found for user " + userId);
+        return res.status(400).send("No thesis found");
       }
 
-      // Limit content size just in case, though DB text can invoke TOAST
-      // But we generally want full text for AI.
+      let content = "";
+      try {
+        if (req.file.mimetype === "application/pdf") {
+          console.log("Parsing PDF...");
+          const data = await pdf(req.file.buffer);
+          content = data.text;
+          console.log("PDF parsed successfully, length: " + content.length);
+        } else if (req.file.mimetype === "text/plain") {
+          console.log("Reading text file...");
+          content = req.file.buffer.toString("utf-8");
+        } else {
+          return res.status(400).json({ message: "Unsupported file type. Please upload a PDF or Text file." });
+        }
+      } catch (parseError) {
+        console.error("Error parsing file content:", parseError);
+        return res.status(400).json({ message: "Failed to parse file content. The file might be corrupted or too complex." });
+      }
 
+      // Sanitize content for Postgres (remove null bytes)
+      content = content.replace(/\u0000/g, ' ');
+
+      console.log("Saving document to DB...");
       const doc = await storage.createDocument({
         thesisId: thesis.id,
         userId,
@@ -762,10 +787,11 @@ export async function registerRoutes(
         mimeType: req.file.mimetype,
         content
       });
+      console.log("Document saved with ID: " + doc.id);
       res.json(doc);
     } catch (error) {
-      console.error("Upload error:", error);
-      res.status(500).send("Upload failed");
+      console.error("Upload route critical error:", error);
+      res.status(500).send("Upload failed internal error");
     }
   });
 
