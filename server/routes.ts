@@ -8,7 +8,11 @@ import { z } from "zod";
 import multer from "multer";
 import pdf from "pdf-parse";
 
-
+import {
+  insertResearchEntrySchema,
+  journalEntrySchema,
+  insertFlashcardSchema,
+} from "@shared/schema";
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = process.env.OPENAI_API_KEY
@@ -20,10 +24,12 @@ const onboardingSchema = z.object({
   studyLevel: z.string().min(1),
   field: z.string().min(1),
   language: z.string().optional(),
+  interfaceLanguage: z.string().optional(),
   thesisTitle: z.string().min(1, "Thesis title is required"),
   topic: z.string().optional(),
   researchQuestions: z.array(z.string()).optional(),
   objectives: z.array(z.string()).optional(),
+  targetDate: z.string().optional(),
 });
 
 const milestoneSchema = z.object({
@@ -78,11 +84,17 @@ const chapterUpdateSchema = z.object({
 });
 
 const aiAssistSchema = z.object({
-  action: z.enum(["outline", "academic", "summarize", "structure"]),
+  action: z.enum(["outline", "academic", "summarize", "structure", "humanize", "ghostwrite"]),
   chapterTitle: z.string(),
   content: z.string().optional(),
   prompt: z.string(),
 });
+
+// ...
+
+
+
+
 
 const referenceSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -93,6 +105,21 @@ const referenceSchema = z.object({
   doi: z.string().optional(),
   notes: z.string().optional(),
   citationStyle: z.enum(["apa", "mla", "chicago"]).optional(),
+  tags: z.array(z.string()).optional(),
+  matrixData: z.record(z.string()).optional(),
+});
+
+const referenceUpdateSchema = z.object({
+  title: z.string().optional(),
+  authors: z.array(z.string()).optional(),
+  year: z.number().nullable().optional(),
+  source: z.string().optional(),
+  url: z.string().optional(),
+  doi: z.string().optional(),
+  notes: z.string().optional(),
+  citationStyle: z.enum(["apa", "mla", "chicago"]).optional(),
+  tags: z.array(z.string()).optional(),
+  matrixData: z.record(z.string()).optional(),
 });
 
 const profileUpdateSchema = z.object({
@@ -105,11 +132,19 @@ const profileUpdateSchema = z.object({
 const thesisUpdateSchema = z.object({
   title: z.string().optional(),
   topic: z.string().optional(),
+  matrixColumns: z.array(z.string()).optional(),
 });
 
 const shareSchema = z.object({
   email: z.string().email("Valid email required"),
   permissionLevel: z.enum(["read", "comment"]).optional(),
+});
+
+const journalEntrySchema = z.object({
+  content: z.string().min(1, "Content is required"),
+  type: z.enum(["thought", "meeting", "experiment", "reading"]).default("thought"),
+  tags: z.array(z.string()).optional(),
+  date: z.string().optional(), // ISO string from frontend
 });
 
 export async function registerRoutes(
@@ -139,13 +174,14 @@ export async function registerRoutes(
       }
 
       const userId = req.user.id;
-      const { studyLevel, field, language, thesisTitle, topic, researchQuestions, objectives } = parsed.data;
+      const { studyLevel, field, language, interfaceLanguage, thesisTitle, topic, researchQuestions, objectives, targetDate } = parsed.data;
 
       // Update user profile
       await storage.updateUser(userId, {
         studyLevel,
         field,
         language,
+        interfaceLanguage,
         onboardingCompleted: true,
       });
 
@@ -158,6 +194,8 @@ export async function registerRoutes(
         researchQuestions: researchQuestions?.filter((q: string) => q.trim()),
         objectives: objectives?.filter((o: string) => o.trim()),
         status: "active",
+        degreeType: studyLevel,
+        targetCompletionDate: targetDate ? new Date(targetDate) : null,
       });
 
       res.json({ success: true });
@@ -525,6 +563,24 @@ export async function registerRoutes(
         case "structure":
           systemPrompt += "Suggest the best structure for this section. Recommend how to organize the content, what subheadings to use, and how to improve the flow.";
           break;
+        case "humanize":
+          systemPrompt += "Rewrite the text to sound more human and less 'AI-generated'. \n" +
+            "Strategies to use:\n" +
+            "1. Vary sentence length significantly (mix short, medium, and long sentences).\n" +
+            "2. Use more natural transitions instead of 'In conclusion', 'Furthermore', 'Moreover'.\n" +
+            "3. Occasionally use rhetorical questions or more conversational academic phrasing where appropriate.\n" +
+            "4. Ensure the perplexity and burstiness of the text is high to bypass AI detectors.\n" +
+            "5. Keep the academic rigor but make the flow less robotic.";
+          break;
+        case "ghostwrite":
+          systemPrompt += "You are an expert academic ghostwriter. Your task is to write a comprehensive, high-quality draft for this chapter.\n" +
+            "Instructions:\n" +
+            "1. Structure the chapter logically (e.g., Introduction, Core Arguments, Evidence/Analysis, Conclusion).\n" +
+            "2. Write in a formal, scholarly tone appropriate for a thesis.\n" +
+            "3. Ensure the content is substantive, well-reasoned, and flows naturally.\n" +
+            "4. Target a length of approximately 800-1000 words (comprehensive overview).\n" +
+            "5. Do NOT use placeholders like [Insert citation]. Make up plausible generic examples or generalized statements if specific data is missing.";
+          break;
         default:
           systemPrompt += "Provide helpful suggestions to improve the academic writing.";
       }
@@ -580,24 +636,44 @@ export async function registerRoutes(
         return res.status(400).json({ message: "No thesis found" });
       }
 
-      const { title, authors, year, source, url, doi, notes, citationStyle } = parsed.data;
+      const { title, authors, year, source, url, doi, notes, citationStyle, tags, matrixData } = parsed.data;
 
       const reference = await storage.createReference({
         thesisId: thesis.id,
         title,
-        authors,
-        year,
-        source,
-        url,
-        doi,
-        notes,
-        citationStyle,
+        authors: authors || [],
+        year: year || null,
+        source: source || null,
+        url: url || null,
+        doi: doi || null,
+        notes: notes || null,
+        citationStyle: citationStyle || "apa",
+        tags: tags || [],
+        matrixData: matrixData || {},
       });
 
       res.json(reference);
     } catch (error) {
       console.error("Error creating reference:", error);
       res.status(500).json({ message: "Failed to create reference" });
+    }
+  });
+
+  app.patch("/api/references/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = referenceUpdateSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      }
+
+      const { id } = req.params;
+      const data = parsed.data;
+
+      const reference = await storage.updateReference(id, data);
+      res.json(reference);
+    } catch (error) {
+      console.error("Error updating reference:", error);
+      res.status(500).json({ message: "Failed to update reference" });
     }
   });
 
@@ -669,8 +745,8 @@ export async function registerRoutes(
         return res.status(400).json({ message: "No thesis found" });
       }
 
-      const { title, topic } = parsed.data;
-      const updated = await storage.updateThesis(thesis.id, { title, topic });
+      const { title, topic, matrixColumns } = parsed.data;
+      const updated = await storage.updateThesis(thesis.id, { title, topic, matrixColumns });
 
       res.json(updated);
     } catch (error) {
@@ -803,6 +879,269 @@ export async function registerRoutes(
     } catch (error) {
       console.error("Delete error:", error);
       res.status(500).send("Delete failed");
+    }
+  });
+
+  // Research Journal
+  app.get("/api/journal", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const entries = await storage.getResearchEntries(userId);
+      res.json(entries);
+    } catch (error) {
+      console.error("Error fetching journal entries:", error);
+      res.status(500).json({ message: "Failed to fetch journal entries" });
+    }
+  });
+
+  app.post("/api/journal", isAuthenticated, async (req: any, res) => {
+    try {
+      // Assuming an import statement exists elsewhere in the file for these schemas
+      // For example: import { insertResearchEntrySchema, journalEntrySchema, insertFlashcardSchema } from "../shared/schema";
+      const parsed = journalEntrySchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      }
+
+      const userId = req.user.id;
+      const { content, type, tags, date } = parsed.data;
+
+      const entry = await storage.createResearchEntry(userId, {
+        content,
+        type: type || "thought",
+        tags: tags || [],
+        date: date ? new Date(date) : new Date(),
+      });
+
+      res.json(entry);
+    } catch (error) {
+      console.error("Error creating journal entry:", error);
+      res.status(500).json({ message: "Failed to create journal entry" });
+    }
+  });
+
+  app.patch("/api/journal/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const parsed = journalEntrySchema.partial().safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      }
+
+      const updateData: any = { ...parsed.data };
+      if (updateData.date) {
+        updateData.date = new Date(updateData.date);
+      }
+
+      const updated = await storage.updateResearchEntry(id, updateData);
+      res.json(updated);
+    } catch (error) {
+      console.error("Error updating journal entry:", error);
+      res.status(500).json({ message: "Failed to update journal entry" });
+    }
+  });
+
+  app.delete("/api/journal/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteResearchEntry(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error deleting journal entry:", error);
+      res.status(500).json({ message: "Failed to delete journal entry" });
+    }
+  });
+
+  // Flashcards (Defense Prep)
+  app.post("/api/ai/generate-flashcards", isAuthenticated, async (req: any, res) => {
+    try {
+      const { amount = 5, category = "general" } = req.body;
+      const userId = req.user.id;
+      const thesis = await storage.getThesisByUserId(userId);
+
+      if (!thesis) {
+        return res.status(400).json({ message: "No thesis found" });
+      }
+
+      const chapters = await storage.getChaptersByThesisId(thesis.id);
+
+      // Construct context from thesis chapters
+      const thesisContext = chapters
+        .filter(c => c.content)
+        .map(c => `Chapter: ${c.title}\n${c.content?.substring(0, 1000)}...`)
+        .join("\n\n");
+
+      if (!thesisContext) {
+        return res.status(400).json({ message: "No content found in thesis chapters to generate flashcards." });
+      }
+
+      if (!openai) {
+        return res.json({ message: "AI is not configured." });
+      }
+
+      const systemPrompt = `You are a strict PhD defense committee member. 
+      Generate ${amount} challenging defense questions based on the provided thesis content.
+      Focus on the category: ${category}.
+      
+      Return the output as a JSON array of objects with 'front' (the question) and 'back' (the answer/key points).
+      Example: [{"front": "What is the limitation of...", "back": "The study is limited by..."}]`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: thesisContext },
+        ],
+        response_format: { type: "json_object" },
+      });
+
+      const content = response.choices[0].message.content;
+      const result = JSON.parse(content || "{\"cards\": []}");
+      const cards = result.cards || result.flashcards || result;
+
+      // Save generated cards
+      const savedCards = [];
+      for (const card of Array.isArray(cards) ? cards : []) {
+        const saved = await storage.createFlashcard({
+          thesisId: thesis.id,
+          front: card.front,
+          back: card.back,
+          category,
+        });
+        savedCards.push(saved);
+      }
+
+      res.json(savedCards);
+    } catch (error) {
+      console.error("Error generating flashcards:", error);
+      res.status(500).json({ message: "Failed to generate flashcards" });
+    }
+  });
+
+  app.get("/api/flashcards", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const thesis = await storage.getThesisByUserId(userId);
+      if (!thesis) return res.json([]);
+      const cards = await storage.getFlashcards(thesis.id);
+      res.json(cards);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch flashcards" });
+    }
+  });
+
+  app.post("/api/flashcards", isAuthenticated, async (req: any, res) => {
+    try {
+      const parsed = insertFlashcardSchema.safeParse(req.body);
+      if (!parsed.success) return res.status(400).json({ message: "Invalid data" });
+
+      const userId = req.user.id;
+      const thesis = await storage.getThesisByUserId(userId);
+      if (!thesis) return res.status(400).json({ message: "No thesis found" });
+
+      const card = await storage.createFlashcard({
+        ...parsed.data,
+        thesisId: thesis.id,
+      });
+      res.json(card);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create flashcard" });
+    }
+  });
+
+  app.patch("/api/flashcards/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { masteryLevel } = req.body;
+      const card = await storage.updateFlashcardMastery(id, masteryLevel);
+      res.json(card);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to update flashcard" });
+    }
+  });
+
+  app.delete("/api/flashcards/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteFlashcard(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to delete flashcard" });
+    }
+  });
+
+  // Methodology Wizard
+  app.post("/api/ai/generate-methodology", isAuthenticated, async (req: any, res) => {
+    try {
+      const { methodologyType, specificMethodology } = req.body;
+      const userId = req.user.id;
+      const thesis = await storage.getThesisByUserId(userId);
+
+      if (!thesis) {
+        return res.status(400).json({ message: "No thesis found" });
+      }
+
+      // 1. Update Thesis with selection
+      await storage.updateThesis(thesis.id, {
+        methodologyType,
+        specificMethodology,
+      });
+
+      // 2. Find or Create Methodology Chapter
+      let chapters = await storage.getChaptersByThesisId(thesis.id);
+      let methodChapter = chapters.find(c => c.title.toLowerCase().includes("methodology") || c.title.toLowerCase().includes("method"));
+
+      if (!methodChapter) {
+        methodChapter = await storage.createChapter({
+          thesisId: thesis.id,
+          title: "Methodology",
+          orderIndex: 3, // Assuming typical order
+          content: "",
+          status: "draft",
+        });
+      }
+
+      if (!openai) {
+        return res.json({ message: "AI is not configured. Methodology preferences saved.", chapterId: methodChapter.id });
+      }
+
+      // 3. Generate Content
+      const systemPrompt = `You are a strict research methodologist.
+      The student has chosen a ${methodologyType} approach, specifically: ${specificMethodology}.
+      
+      Generate a comprehensive outline for the Methodology chapter.
+      Include these sections:
+      1. Research Design (Justify the ${specificMethodology} approach)
+      2. Participants / Sample
+      3. Instruments / Data Collection Sources
+      4. Procedure
+      5. Data Analysis Plan
+      6. Ethics
+      
+      Output valid HTML content suitable for a WYSIWYG editor. Use <h2> and <h3> tags.`;
+
+      const userContext = `Thesis Title: ${thesis.title}\nTopic: ${thesis.topic}\nResearch Questions: ${thesis.researchQuestions?.join("\n")}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-5",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userContext },
+        ],
+      });
+
+      const generatedContent = response.choices[0].message.content || "";
+
+      // 4. Update Chapter Content
+      await storage.updateChapter(methodChapter.id, {
+        content: generatedContent,
+      });
+
+      res.json({ success: true, chapterId: methodChapter.id });
+
+    } catch (error) {
+      console.error("Error generating methodology:", error);
+      res.status(500).json({ message: "Failed to generate methodology" });
     }
   });
 

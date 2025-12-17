@@ -86,6 +86,18 @@ const aiActions: AIAction[] = [
     icon: <FileText className="h-4 w-4" />,
     prompt: "Suggest the best structure for this section",
   },
+  {
+    id: "humanize",
+    label: "Humanize (Bypass AI)",
+    icon: <Sparkles className="h-4 w-4" />,
+    prompt: "Rewrite this text to sound more human and bypass AI detectors",
+  },
+  {
+    id: "ghostwrite",
+    label: "Ghostwrite Chapter",
+    icon: <Sparkles className="h-4 w-4" />,
+    prompt: "Write a comprehensive draft for this chapter",
+  },
 ];
 
 export default function Editor() {
@@ -299,11 +311,10 @@ export default function Editor() {
                 <button
                   key={chapter.id}
                   onClick={() => setSelectedChapterId(chapter.id)}
-                  className={`w-full text-left p-3 rounded-lg transition-colors ${
-                    selectedChapterId === chapter.id
-                      ? "bg-sidebar-accent"
-                      : "hover:bg-muted/50"
-                  }`}
+                  className={`w-full text-left p-3 rounded-lg transition-colors ${selectedChapterId === chapter.id
+                    ? "bg-sidebar-accent"
+                    : "hover:bg-muted/50"
+                    }`}
                   data-testid={`button-chapter-${index}`}
                 >
                   <div className="flex items-center justify-between gap-2">

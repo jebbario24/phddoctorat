@@ -28,6 +28,13 @@ import {
   documents,
   type Document,
   type InsertDocument,
+
+  researchEntries,
+  flashcards,
+  type ResearchEntry,
+  type InsertResearchEntry,
+  InsertFlashcard,
+  Flashcard,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, asc } from "drizzle-orm";
@@ -87,6 +94,18 @@ export interface IStorage {
   getDocumentsByThesisId(thesisId: string): Promise<Document[]>;
   createDocument(doc: InsertDocument): Promise<Document>;
   deleteDocument(id: string): Promise<void>;
+
+  // Research Journal operations
+  getResearchEntries(userId: string): Promise<ResearchEntry[]>;
+  createResearchEntry(userId: string, entry: InsertResearchEntry): Promise<ResearchEntry>;
+  updateResearchEntry(id: string, data: Partial<InsertResearchEntry>): Promise<ResearchEntry | undefined>;
+  deleteResearchEntry(id: string): Promise<void>;
+
+  // Flashcards
+  getFlashcards(thesisId: string): Promise<Flashcard[]>;
+  createFlashcard(card: InsertFlashcard & { thesisId: string }): Promise<Flashcard>;
+  updateFlashcardMastery(id: string, masteryLevel: number): Promise<Flashcard>;
+  deleteFlashcard(id: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -313,6 +332,62 @@ export class DatabaseStorage implements IStorage {
 
   async deleteDocument(id: string): Promise<void> {
     await db.delete(documents).where(eq(documents.id, id));
+  }
+
+  // Research Journal operations
+  async getResearchEntries(userId: string): Promise<ResearchEntry[]> {
+    return await db
+      .select()
+      .from(researchEntries)
+      .where(eq(researchEntries.userId, userId))
+      .orderBy(asc(researchEntries.date));
+  }
+
+  async createResearchEntry(userId: string, entry: InsertResearchEntry): Promise<ResearchEntry> {
+    const [newEntry] = await db
+      .insert(researchEntries)
+      .values({ ...entry, userId })
+      .returning();
+    return newEntry;
+  }
+
+  async updateResearchEntry(id: string, data: Partial<InsertResearchEntry>): Promise<ResearchEntry | undefined> {
+    const [updatedEntry] = await db
+      .update(researchEntries)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(researchEntries.id, id))
+      .returning();
+    return updatedEntry;
+  }
+
+  async deleteResearchEntry(id: string): Promise<void> {
+    await db.delete(researchEntries).where(eq(researchEntries.id, id));
+  }
+
+  // Flashcards
+  async getFlashcards(thesisId: string): Promise<Flashcard[]> {
+    return await db.select().from(flashcards).where(eq(flashcards.thesisId, thesisId));
+  }
+
+  async createFlashcard(card: InsertFlashcard & { thesisId: string }): Promise<Flashcard> {
+    const [newCard] = await db
+      .insert(flashcards)
+      .values(card)
+      .returning();
+    return newCard;
+  }
+
+  async updateFlashcardMastery(id: string, masteryLevel: number): Promise<Flashcard> {
+    const [updatedCard] = await db
+      .update(flashcards)
+      .set({ masteryLevel, updatedAt: new Date() })
+      .where(eq(flashcards.id, id))
+      .returning();
+    return updatedCard;
+  }
+
+  async deleteFlashcard(id: string): Promise<void> {
+    await db.delete(flashcards).where(eq(flashcards.id, id));
   }
 }
 

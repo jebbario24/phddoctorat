@@ -23,6 +23,10 @@ import {
   LogOut,
   GraduationCap,
   ListTodo,
+  Grid3X3,
+  NotebookText,
+  BrainCircuit,
+  Wand2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -32,6 +36,10 @@ const navItems = [
   { title: "Tasks", url: "/tasks", icon: ListTodo },
   { title: "Editor", url: "/editor", icon: FileText },
   { title: "References", url: "/references", icon: BookOpen },
+  { title: "Matrix", url: "/matrix", icon: Grid3X3 },
+  { title: "Journal", url: "/journal", icon: NotebookText },
+  { title: "Defense Prep", url: "/defense", icon: BrainCircuit },
+  { title: "Methodology", url: "/methodology", icon: Wand2 },
   { title: "Settings", url: "/settings", icon: Settings },
 ];
 

@@ -8,6 +8,7 @@ import {
   boolean,
   jsonb,
   index,
+  uuid,
 } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -33,6 +34,7 @@ export const users = pgTable("users", {
   studyLevel: varchar("study_level"), // 'masters' | 'phd'
   field: varchar("field"),
   language: varchar("language"),
+  interfaceLanguage: varchar("interface_language").default("english"),
   password: text("password"),
   onboardingCompleted: boolean("onboarding_completed").default(false),
   createdAt: timestamp("created_at").defaultNow(),
@@ -49,6 +51,11 @@ export const theses = pgTable("theses", {
   researchQuestions: text("research_questions").array(),
   objectives: text("objectives").array(),
   status: varchar("status").default("active"), // 'active' | 'completed' | 'archived'
+  degreeType: varchar("degree_type").default("phd"), // 'bachelor' | 'masters' | 'phd'
+  targetCompletionDate: timestamp("target_completion_date"),
+  matrixColumns: text("matrix_columns").array(),
+  methodologyType: varchar("methodology_type"), // 'qualitative' | 'quantitative' | 'mixed'
+  specificMethodology: varchar("specific_methodology"), // 'case_study', 'rct', etc.
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -122,6 +129,8 @@ export const references = pgTable("references", {
   citationStyle: varchar("citation_style").default("apa"), // 'apa' | 'mla' | 'chicago'
   formattedCitation: text("formatted_citation"),
   notes: text("notes"),
+  tags: text("tags").array(),
+  matrixData: jsonb("matrix_data").default({}),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -136,6 +145,31 @@ export const sharedAccess = pgTable("shared_access", {
   accepted: boolean("accepted").default(false),
   createdAt: timestamp("created_at").defaultNow(),
   expiresAt: timestamp("expires_at"),
+});
+
+// Research Journal Entries
+export const researchEntries = pgTable("research_entries", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  content: text("content").notNull(),
+  type: varchar("type").default("thought"), // 'thought' | 'meeting' | 'experiment' | 'reading'
+  tags: text("tags").array().default([]),
+  date: timestamp("date").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const flashcards = pgTable("flashcards", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  thesisId: uuid("thesis_id")
+    .notNull()
+    .references(() => theses.id, { onDelete: "cascade" }),
+  front: text("front").notNull(), // Question
+  back: text("back").notNull(), // Answer
+  category: varchar("category").notNull().default("general"), // methodology, theory, results, general
+  masteryLevel: integer("mastery_level").default(0), // 0-5
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Documents table for RAG
@@ -154,6 +188,7 @@ export const documents = pgTable("documents", {
 export const usersRelations = relations(users, ({ many }) => ({
   theses: many(theses),
   comments: many(comments),
+  researchEntries: many(researchEntries),
 }));
 
 export const thesesRelations = relations(theses, ({ one, many }) => ({
@@ -245,6 +280,20 @@ export const referencesRelations = relations(references, ({ one }) => ({
   }),
 }));
 
+export const researchEntriesRelations = relations(researchEntries, ({ one }) => ({
+  user: one(users, {
+    fields: [researchEntries.userId],
+    references: [users.id],
+  }),
+}));
+
+export const flashcardsRelations = relations(flashcards, ({ one }) => ({
+  thesis: one(theses, {
+    fields: [flashcards.thesisId],
+    references: [theses.id],
+  }),
+}));
+
 
 
 // Insert schemas
@@ -294,10 +343,28 @@ export const insertSharedAccessSchema = createInsertSchema(sharedAccess).omit({
   createdAt: true,
 });
 
-// Types
-export type UpsertUser = typeof users.$inferInsert;
-export type User = typeof users.$inferSelect;
+export const insertResearchEntrySchema = createInsertSchema(researchEntries).pick({
+  content: true,
+  type: true,
+  tags: true,
+  date: true,
+});
+
+export const journalEntrySchema = insertResearchEntrySchema;
+export type InsertResearchEntry = z.infer<typeof insertResearchEntrySchema>;
+export type ResearchEntry = typeof researchEntries.$inferSelect;
+
+export const insertFlashcardSchema = createInsertSchema(flashcards).pick({
+  front: true,
+  back: true,
+  category: true,
+});
+
+export type InsertFlashcard = z.infer<typeof insertFlashcardSchema>;
+export type Flashcard = typeof flashcards.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+export type User = typeof users.$inferSelect;
+export type UpsertUser = typeof users.$inferInsert;
 
 export type InsertThesis = z.infer<typeof insertThesisSchema>;
 export type Thesis = typeof theses.$inferSelect;
@@ -319,3 +386,5 @@ export type Reference = typeof references.$inferSelect;
 
 export type InsertSharedAccess = z.infer<typeof insertSharedAccessSchema>;
 export type SharedAccess = typeof sharedAccess.$inferSelect;
+
+

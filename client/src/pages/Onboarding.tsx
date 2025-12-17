@@ -16,6 +16,8 @@ interface OnboardingData {
   studyLevel: string;
   field: string;
   language: string;
+  interfaceLanguage: string;
+  targetDate: string;
   thesisTitle: string;
   topic: string;
   researchQuestions: string[];
@@ -26,12 +28,14 @@ export default function Onboarding() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
   const [step, setStep] = useState(1);
-  const totalSteps = 4;
+  const totalSteps = 5;
 
   const [data, setData] = useState<OnboardingData>({
     studyLevel: "",
     field: "",
     language: "english",
+    interfaceLanguage: "english",
+    targetDate: "",
     thesisTitle: "",
     topic: "",
     researchQuestions: [""],
@@ -75,12 +79,14 @@ export default function Onboarding() {
   const canProceed = () => {
     switch (step) {
       case 1:
-        return data.studyLevel && data.field;
+        return !!data.interfaceLanguage;
       case 2:
-        return data.thesisTitle.trim().length > 0;
+        return data.studyLevel && data.field;
       case 3:
-        return data.researchQuestions.some((q) => q.trim().length > 0);
+        return data.thesisTitle.trim().length > 0;
       case 4:
+        return data.researchQuestions.some((q) => q.trim().length > 0);
+      case 5:
         return data.objectives.some((o) => o.trim().length > 0);
       default:
         return false;
@@ -120,20 +126,43 @@ export default function Onboarding() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {step === 1 && "Tell us about yourself"}
-              {step === 2 && "Define your thesis"}
-              {step === 3 && "Research questions"}
-              {step === 4 && "Set your objectives"}
+              {step === 1 && "Select Language"}
+              {step === 2 && "Tell us about yourself"}
+              {step === 3 && "Define your thesis"}
+              {step === 4 && "Research questions"}
+              {step === 5 && "Set your objectives"}
             </CardTitle>
             <CardDescription>
-              {step === 1 && "Help us personalize your experience"}
-              {step === 2 && "What will your thesis be about?"}
-              {step === 3 && "What questions will your research answer?"}
-              {step === 4 && "What do you aim to achieve?"}
+              {step === 1 && "Choose your preferred interface language"}
+              {step === 2 && "Help us personalize your experience"}
+              {step === 3 && "What will your thesis be about?"}
+              {step === 4 && "What questions will your research answer?"}
+              {step === 5 && "What do you aim to achieve?"}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {step === 1 && (
+              <div className="space-y-2">
+                <Label htmlFor="interfaceLanguage">Interface Language</Label>
+                <Select
+                  value={data.interfaceLanguage}
+                  onValueChange={(value) => setData({ ...data, interfaceLanguage: value })}
+                >
+                  <SelectTrigger data-testid="select-interface-language">
+                    <SelectValue placeholder="Select language" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="english">English</SelectItem>
+                    <SelectItem value="french">Français (French)</SelectItem>
+                    <SelectItem value="arabic">العربية (Arabic)</SelectItem>
+                    <SelectItem value="spanish">Español (Spanish)</SelectItem>
+                    <SelectItem value="chinese">中文 (Chinese)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {step === 2 && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="studyLevel">Study Level</Label>
@@ -145,11 +174,24 @@ export default function Onboarding() {
                       <SelectValue placeholder="Select your level" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="bachelors">Bachelor's Degree</SelectItem>
                       <SelectItem value="masters">Master's Degree</SelectItem>
                       <SelectItem value="phd">PhD / Doctorate</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="targetDate">Target Completion Date</Label>
+                  <Input
+                    type="date"
+                    id="targetDate"
+                    value={data.targetDate}
+                    onChange={(e) => setData({ ...data, targetDate: e.target.value })}
+                    data-testid="input-target-date"
+                  />
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="field">Field of Study</Label>
                   <Select
@@ -196,7 +238,7 @@ export default function Onboarding() {
               </>
             )}
 
-            {step === 2 && (
+            {step === 3 && (
               <>
                 <div className="space-y-2">
                   <Label htmlFor="thesisTitle">Thesis Title</Label>
@@ -222,7 +264,7 @@ export default function Onboarding() {
               </>
             )}
 
-            {step === 3 && (
+            {step === 4 && (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
                   Add the main questions your research will address.
@@ -252,7 +294,7 @@ export default function Onboarding() {
               </div>
             )}
 
-            {step === 4 && (
+            {step === 5 && (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
                   Define the objectives you aim to achieve with your thesis.

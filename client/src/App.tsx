@@ -18,6 +18,10 @@ import Editor from "@/pages/Editor";
 import References from "@/pages/References";
 import Settings from "@/pages/Settings";
 import Auth from "@/pages/Auth";
+import LiteratureMatrix from "@/pages/LiteratureMatrix";
+import ResearchJournal from "@/pages/ResearchJournal";
+import DefensePrep from "@/pages/DefensePrep";
+import MethodologyWizard from "@/pages/MethodologyWizard";
 
 function AuthenticatedLayout({ children }: { children: React.ReactNode }) {
   const style = {
@@ -75,6 +79,10 @@ function Router() {
         <Route path="/tasks" component={Tasks} />
         <Route path="/editor" component={Editor} />
         <Route path="/references" component={References} />
+        <Route path="/matrix" component={LiteratureMatrix} />
+        <Route path="/journal" component={ResearchJournal} />
+        <Route path="/defense" component={DefensePrep} />
+        <Route path="/methodology" component={MethodologyWizard} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
