@@ -47,7 +47,6 @@ export default function Onboarding() {
       await apiRequest("POST", "/api/onboarding/complete", data);
     },
     onSuccess: () => {
-      navigate("/dashboard");
       toast({ title: "Welcome!", description: "Your thesis has been set up successfully." });
       queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
     },
@@ -98,6 +97,8 @@ export default function Onboarding() {
       setStep(step + 1);
     } else {
       completeMutation.mutate();
+      // Optimistic navigation: User requested immediate redirect without waiting for server
+      navigate("/dashboard");
     }
   };
 

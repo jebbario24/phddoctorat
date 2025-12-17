@@ -35,7 +35,7 @@ const onboardingSchema = z.object({
 const milestoneSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  targetDate: z.string().optional(),
+  targetDate: z.coerce.date().optional(),
 });
 
 const milestonesInitializeSchema = z.object({
@@ -51,7 +51,7 @@ const milestoneUpdateSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
   completed: z.boolean().optional(),
-  targetDate: z.string().nullable().optional(),
+  targetDate: z.coerce.date().nullable().optional(),
 });
 
 const taskSchema = z.object({
@@ -59,7 +59,7 @@ const taskSchema = z.object({
   description: z.string().optional(),
   priority: z.enum(["low", "medium", "high"]).optional(),
   chapterId: z.string().optional(),
-  dueDate: z.string().optional(),
+  dueDate: z.coerce.date().optional(),
 });
 
 const taskUpdateSchema = z.object({
@@ -68,7 +68,7 @@ const taskUpdateSchema = z.object({
   priority: z.enum(["low", "medium", "high"]).optional(),
   status: z.enum(["todo", "in_progress", "review", "done"]).optional(),
   completed: z.boolean().optional(),
-  dueDate: z.string().nullable().optional(),
+  dueDate: z.coerce.date().nullable().optional(),
 });
 
 const chapterSchema = z.object({
