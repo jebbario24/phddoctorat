@@ -45,7 +45,8 @@ const navItems = [
 
 export function AppSidebar() {
   const [location] = useLocation();
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
+
 
   const getInitials = () => {
     if (user?.firstName && user?.lastName) {
@@ -118,13 +119,17 @@ export function AppSidebar() {
               {user?.studyLevel === "phd" ? "PhD Student" : user?.studyLevel === "masters" ? "Master's Student" : "Student"}
             </p>
           </div>
-          <Button variant="ghost" size="icon" asChild data-testid="button-logout">
-            <a href="/api/logout">
-              <LogOut className="h-4 w-4" />
-            </a>
+          <Button
+            variant="ghost"
+            size="icon"
+            data-testid="button-logout"
+            onClick={() => logoutMutation.mutate()}
+            disabled={logoutMutation.isPending}
+          >
+            <LogOut className="h-4 w-4" />
           </Button>
         </div>
       </SidebarFooter>
-    </Sidebar>
+    </Sidebar >
   );
 }

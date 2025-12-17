@@ -160,8 +160,8 @@ export const researchEntries = pgTable("research_entries", {
 });
 
 export const flashcards = pgTable("flashcards", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  thesisId: uuid("thesis_id")
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  thesisId: varchar("thesis_id")
     .notNull()
     .references(() => theses.id, { onDelete: "cascade" }),
   front: text("front").notNull(), // Question
