@@ -595,9 +595,10 @@ export async function registerRoutes(
       const text = response.text();
 
       res.json({ response: text });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error with AI assist:", error);
-      res.status(500).json({ message: "Failed to get AI response" });
+      // Return the actual error message for debugging purposes
+      res.status(500).json({ message: error.message || "Failed to get AI response" });
     }
   });
 
@@ -1038,9 +1039,9 @@ export async function registerRoutes(
       }
 
       res.json(savedCards);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating flashcards:", error);
-      res.status(500).json({ message: "Failed to generate flashcards" });
+      res.status(500).json({ message: error.message || "Failed to generate flashcards" });
     }
   });
 
@@ -1160,9 +1161,9 @@ export async function registerRoutes(
 
       res.json({ success: true, chapterId: methodChapter.id });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error generating methodology:", error);
-      res.status(500).json({ message: "Failed to generate methodology" });
+      res.status(500).json({ message: error.message || "Failed to generate methodology" });
     }
   });
 

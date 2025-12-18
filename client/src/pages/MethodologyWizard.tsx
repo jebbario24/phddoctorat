@@ -32,10 +32,11 @@ export default function MethodologyWizard() {
             });
             setLocation(`/editor/${data.chapterId}`);
         },
-        onError: () => {
+        onError: (error) => {
+            const errorMessage = error.message || "Failed to generate methodology.";
             toast({
                 title: "Error",
-                description: "Failed to generate methodology.",
+                description: errorMessage,
                 variant: "destructive"
             });
         },

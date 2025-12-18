@@ -37,9 +37,10 @@ export default function DefensePrep() {
             setCurrentIndex(0);
             setIsFlipped(false);
         },
-        onError: () => {
+        onError: (error) => {
             setGenerating(false);
-            toast({ title: "Error", description: "Failed to generate flashcards.", variant: "destructive" });
+            const errorMessage = error.message || "Failed to generate flashcards.";
+            toast({ title: "Error", description: errorMessage, variant: "destructive" });
         },
     });
 

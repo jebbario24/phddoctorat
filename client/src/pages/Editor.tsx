@@ -183,9 +183,10 @@ export default function Editor() {
       });
       const data = await response.json();
       setAiResponse(data.response || "No response generated.");
-    } catch (error) {
-      setAiResponse("Failed to get AI response. Please try again.");
-      toast({ title: "Error", description: "AI assistance failed.", variant: "destructive" });
+    } catch (error: any) {
+      const errorMessage = error.message || "Failed to get AI response. Please try again.";
+      setAiResponse(errorMessage);
+      toast({ title: "Error", description: errorMessage, variant: "destructive" });
     } finally {
       setIsAILoading(false);
     }
