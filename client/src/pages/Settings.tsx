@@ -134,6 +134,20 @@ export default function Settings() {
     },
   });
 
+  const updateLanguageMutation = useMutation({
+    mutationFn: async (language: string) => {
+      await apiRequest("PATCH", "/api/settings/language", { interfaceLanguage: language });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/settings"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
+      toast({ title: "Language updated", description: "Interface language has been changed." });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to update language.", variant: "destructive" });
+    },
+  });
+
   const copyShareLink = async (token: string) => {
     const link = `${window.location.origin}/shared/${token}`;
     await navigator.clipboard.writeText(link);
@@ -440,6 +454,31 @@ export default function Settings() {
               onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
               data-testid="switch-dark-mode"
             />
+          </div>
+
+          <Separator />
+
+          <div className="space-y-2">
+            <Label>Interface Language</Label>
+            <p className="text-sm text-muted-foreground">Choose your preferred interface language</p>
+            <Select
+              value={user?.interfaceLanguage || "english"}
+              onValueChange={(value) => {
+                // Update immediately via mutation
+                updateLanguageMutation.mutate(value);
+              }}
+            >
+              <SelectTrigger data-testid="select-interface-language">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="english">English</SelectItem>
+                <SelectItem value="french">Français (French)</SelectItem>
+                <SelectItem value="arabic">العربية (Arabic)</SelectItem>
+                <SelectItem value="spanish">Español (Spanish)</SelectItem>
+                <SelectItem value="chinese">中文 (Chinese)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>

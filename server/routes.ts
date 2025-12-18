@@ -755,6 +755,29 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/settings/language", isAuthenticated, async (req: any, res) => {
+    try {
+      const schema = z.object({
+        interfaceLanguage: z.string().min(1),
+      });
+
+      const parsed = schema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
+      }
+
+      const userId = req.user.id;
+      const { interfaceLanguage } = parsed.data;
+
+      const user = await storage.updateUser(userId, { interfaceLanguage });
+
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating language:", error);
+      res.status(500).json({ message: "Failed to update language" });
+    }
+  });
+
   app.post("/api/settings/share", isAuthenticated, async (req: any, res) => {
     try {
       const parsed = shareSchema.safeParse(req.body);
