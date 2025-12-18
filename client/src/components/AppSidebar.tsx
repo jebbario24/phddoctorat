@@ -1,5 +1,6 @@
 import { useLocation, Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
+import { useTranslation } from "@/hooks/useTranslation";
 import {
   Sidebar,
   SidebarContent,
@@ -46,6 +47,20 @@ const navItems = [
 export function AppSidebar() {
   const [location] = useLocation();
   const { user, logoutMutation } = useAuth();
+  const { t } = useTranslation();
+
+  const navItems = [
+    { title: t.navDashboard, url: "/dashboard", icon: LayoutDashboard },
+    { title: t.navPlanner, url: "/planner", icon: Calendar },
+    { title: t.navTasks, url: "/tasks", icon: ListTodo },
+    { title: t.navEditor, url: "/editor", icon: FileText },
+    { title: t.navReferences, url: "/references", icon: BookOpen },
+    { title: t.navMatrix, url: "/matrix", icon: Grid3X3 },
+    { title: t.navJournal, url: "/journal", icon: NotebookText },
+    { title: t.navDefensePrep, url: "/defense", icon: BrainCircuit },
+    { title: t.navMethodology, url: "/methodology", icon: Wand2 },
+    { title: t.navSettings, url: "/settings", icon: Settings },
+  ];
 
 
   const getInitials = () => {
@@ -90,11 +105,11 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup className="mt-auto">
-          <SidebarGroupLabel>Progress</SidebarGroupLabel>
+          <SidebarGroupLabel>{t.progress}</SidebarGroupLabel>
           <SidebarGroupContent className="px-2">
             <div className="p-3 rounded-lg bg-sidebar-accent/50">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-sidebar-foreground">Overall</span>
+                <span className="text-sidebar-foreground">{t.overall}</span>
                 <span className="text-muted-foreground">0%</span>
               </div>
               <Progress value={0} className="h-1.5" />

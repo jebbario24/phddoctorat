@@ -28,6 +28,7 @@ import { User, Mail, GraduationCap, Share2, Copy, Loader2, Check, Link } from "l
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/ThemeProvider";
+import { useTranslation } from "@/hooks/useTranslation";
 import type { User as UserType, Thesis, SharedAccess } from "@shared/schema";
 
 interface SettingsData {
@@ -39,6 +40,7 @@ interface SettingsData {
 export default function Settings() {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
+  const { t } = useTranslation();
   const [isShareDialogOpen, setIsShareDialogOpen] = useState(false);
   const [shareEmail, setShareEmail] = useState("");
   const [sharePermission, setSharePermission] = useState("read");
@@ -183,17 +185,17 @@ export default function Settings() {
   return (
     <div className="p-6 space-y-6 max-w-3xl mx-auto">
       <div>
-        <h1 className="text-3xl font-semibold" data-testid="text-settings-title">Settings</h1>
-        <p className="text-muted-foreground">Manage your account and thesis preferences</p>
+        <h1 className="text-3xl font-semibold" data-testid="text-settings-title">{t.settingsTitle}</h1>
+        <p className="text-muted-foreground">{t.settingsSubtitle}</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
-            Profile
+            {t.profileTitle}
           </CardTitle>
-          <CardDescription>Your personal information</CardDescription>
+          <CardDescription>{t.profileDesc}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex items-center gap-4">
@@ -215,7 +217,7 @@ export default function Settings() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="firstName">First Name</Label>
+              <Label htmlFor="firstName">{t.firstName}</Label>
               <Input
                 id="firstName"
                 value={formData.firstName}
@@ -224,7 +226,7 @@ export default function Settings() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="lastName">Last Name</Label>
+              <Label htmlFor="lastName">{t.lastName}</Label>
               <Input
                 id="lastName"
                 value={formData.lastName}
@@ -236,40 +238,40 @@ export default function Settings() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Study Level</Label>
+              <Label>{t.studyLevel}</Label>
               <Select
                 value={formData.studyLevel}
                 onValueChange={(value) => setFormData({ ...formData, studyLevel: value })}
               >
                 <SelectTrigger data-testid="select-study-level">
-                  <SelectValue placeholder="Select level" />
+                  <SelectValue placeholder={t.selectLevel} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="masters">Master's Degree</SelectItem>
-                  <SelectItem value="phd">PhD / Doctorate</SelectItem>
+                  <SelectItem value="masters">{t.levelMaster}</SelectItem>
+                  <SelectItem value="phd">{t.levelPhD}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Field of Study</Label>
+              <Label>{t.fieldOfStudy}</Label>
               <Select
                 value={formData.field}
                 onValueChange={(value) => setFormData({ ...formData, field: value })}
               >
                 <SelectTrigger data-testid="select-field">
-                  <SelectValue placeholder="Select field" />
+                  <SelectValue placeholder={t.selectField} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sciences">Natural Sciences</SelectItem>
-                  <SelectItem value="engineering">Engineering</SelectItem>
-                  <SelectItem value="medicine">Medicine & Health</SelectItem>
-                  <SelectItem value="social">Social Sciences</SelectItem>
-                  <SelectItem value="humanities">Humanities</SelectItem>
-                  <SelectItem value="business">Business & Economics</SelectItem>
-                  <SelectItem value="arts">Arts & Design</SelectItem>
-                  <SelectItem value="education">Education</SelectItem>
-                  <SelectItem value="law">Law</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="sciences">{t.fieldScience}</SelectItem>
+                  <SelectItem value="engineering">{t.fieldEng}</SelectItem>
+                  <SelectItem value="medicine">{t.fieldMed}</SelectItem>
+                  <SelectItem value="social">{t.fieldSocial}</SelectItem>
+                  <SelectItem value="humanities">{t.fieldHum}</SelectItem>
+                  <SelectItem value="business">{t.fieldBus}</SelectItem>
+                  <SelectItem value="arts">{t.fieldArts}</SelectItem>
+                  <SelectItem value="education">{t.fieldEdu}</SelectItem>
+                  <SelectItem value="law">{t.fieldLaw}</SelectItem>
+                  <SelectItem value="other">{t.fieldOther}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -283,7 +285,7 @@ export default function Settings() {
             {updateProfileMutation.isPending ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : null}
-            Save Profile
+            {t.saveProfile}
           </Button>
         </CardContent>
       </Card>
@@ -292,13 +294,13 @@ export default function Settings() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <GraduationCap className="h-5 w-5" />
-            Thesis Details
+            {t.thesisDetailsTitle}
           </CardTitle>
-          <CardDescription>Your thesis information</CardDescription>
+          <CardDescription>{t.thesisDetailsDesc}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="thesisTitle">Thesis Title</Label>
+            <Label htmlFor="thesisTitle">{t.thesisTitle}</Label>
             <Input
               id="thesisTitle"
               value={formData.thesisTitle}
@@ -307,7 +309,7 @@ export default function Settings() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="thesisTopic">Topic Description</Label>
+            <Label htmlFor="thesisTopic">{t.topicDescription}</Label>
             <Textarea
               id="thesisTopic"
               value={formData.thesisTopic}
@@ -324,7 +326,7 @@ export default function Settings() {
             {updateThesisMutation.isPending ? (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             ) : null}
-            Save Thesis Details
+            {t.saveThesisDetails}
           </Button>
         </CardContent>
       </Card>
@@ -334,27 +336,27 @@ export default function Settings() {
           <div>
             <CardTitle className="flex items-center gap-2">
               <Share2 className="h-5 w-5" />
-              Supervisor Access
+              {t.supervisorAccessTitle}
             </CardTitle>
-            <CardDescription>Share your thesis with supervisors</CardDescription>
+            <CardDescription>{t.supervisorAccessDesc}</CardDescription>
           </div>
           <Dialog open={isShareDialogOpen} onOpenChange={setIsShareDialogOpen}>
             <DialogTrigger asChild>
               <Button data-testid="button-share-thesis">
                 <Share2 className="h-4 w-4 mr-2" />
-                Share
+                {t.share}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Share Your Thesis</DialogTitle>
+                <DialogTitle>{t.shareThesisTitle}</DialogTitle>
                 <DialogDescription>
-                  Create a share link for your supervisor to access your thesis.
+                  {t.shareThesisDesc}
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="shareEmail">Supervisor Email</Label>
+                  <Label htmlFor="shareEmail">{t.supervisorEmail}</Label>
                   <Input
                     id="shareEmail"
                     type="email"
@@ -365,14 +367,14 @@ export default function Settings() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Permission Level</Label>
+                  <Label>{t.permissionLevel}</Label>
                   <Select value={sharePermission} onValueChange={setSharePermission}>
                     <SelectTrigger data-testid="select-permission">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="read">Read Only</SelectItem>
-                      <SelectItem value="comment">Can Comment</SelectItem>
+                      <SelectItem value="read">{t.readOnly}</SelectItem>
+                      <SelectItem value="comment">{t.canComment}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -382,7 +384,7 @@ export default function Settings() {
                   className="w-full"
                   data-testid="button-create-share"
                 >
-                  {shareMutation.isPending ? "Creating..." : "Create Share Link"}
+                  {shareMutation.isPending ? t.creating : t.createShareLink}
                 </Button>
               </div>
             </DialogContent>
@@ -392,8 +394,8 @@ export default function Settings() {
           {sharedAccess.length === 0 ? (
             <div className="text-center py-6 text-muted-foreground">
               <Share2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-              <p>No one has access to your thesis yet.</p>
-              <p className="text-sm">Share it with your supervisor to get feedback.</p>
+              <p>{t.noAccessYet}</p>
+              <p className="text-sm">{t.shareWithSupervisor}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -428,7 +430,7 @@ export default function Settings() {
                       className="text-destructive hover:text-destructive"
                       data-testid={`button-revoke-${access.id}`}
                     >
-                      Revoke
+                      {t.revoke}
                     </Button>
                   </div>
                 </div>
@@ -440,14 +442,14 @@ export default function Settings() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Preferences</CardTitle>
-          <CardDescription>Customize your experience</CardDescription>
+          <CardTitle>{t.preferencesTitle}</CardTitle>
+          <CardDescription>{t.preferencesDesc}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label>Dark Mode</Label>
-              <p className="text-sm text-muted-foreground">Toggle dark theme</p>
+              <Label>{t.darkMode}</Label>
+              <p className="text-sm text-muted-foreground">{t.toggleDarkTheme}</p>
             </div>
             <Switch
               checked={theme === "dark"}
@@ -459,8 +461,8 @@ export default function Settings() {
           <Separator />
 
           <div className="space-y-2">
-            <Label>Interface Language</Label>
-            <p className="text-sm text-muted-foreground">Choose your preferred interface language</p>
+            <Label>{t.interfaceLanguage}</Label>
+            <p className="text-sm text-muted-foreground">{t.chooseLanguage}</p>
             <Select
               value={user?.interfaceLanguage || "english"}
               onValueChange={(value) => {
