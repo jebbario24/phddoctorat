@@ -585,9 +585,9 @@ export async function registerRoutes(
           systemPrompt += "Provide helpful suggestions to improve the academic writing.";
       }
 
-      // Use Gemini 2.5 Pro model (available to user)
-      console.log("Using AI Model: gemini-2.5-pro");
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+      // Use Gemini Pro Latest (fallback for robustness)
+      console.log("Using AI Model: gemini-pro-latest");
+      const model = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
 
       const fullPrompt = `${systemPrompt}${context}\n\nChapter: ${chapterTitle} \n\nContent: \n${content || "(empty)"} \n\nRequest: ${prompt}`;
 
@@ -1010,7 +1010,7 @@ export async function registerRoutes(
       
       You MUST return ONLY valid JSON, no other text or formatting.`;
 
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
 
       const result = await model.generateContent(`${systemPrompt}\n\nThesis Content:\n${thesisContext}`);
       const response = result.response;
@@ -1150,7 +1150,7 @@ export async function registerRoutes(
 
       const userContext = `Thesis Title: ${thesis.title}\nTopic: ${thesis.topic}\nResearch Questions: ${thesis.researchQuestions?.join("\n")}`;
 
-      const model = genAI.getGenerativeModel({ model: "gemini-2.5-pro" });
+      const model = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
       const result = await model.generateContent(`${systemPrompt}\n\n${userContext}`);
       const response = result.response;
       const generatedContent = response.text() || "";
