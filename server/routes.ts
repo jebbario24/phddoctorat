@@ -2,7 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
-import OpenAI from "openai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import multer from "multer";
@@ -14,9 +14,9 @@ import {
   insertFlashcardSchema,
 } from "@shared/schema";
 
-// the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = process.env.OPENAI_API_KEY
-  ? new OpenAI({ apiKey: process.env.OPENAI_API_KEY })
+// Initialize Gemini AI client (using Gemini 1.5 Flash for fast, free responses)
+const genAI = process.env.GEMINI_API_KEY
+  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
   : null;
 
 // Validation schemas
@@ -529,8 +529,8 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      if (!openai) {
-        return res.json({ response: "AI assistance is not configured. Please add your OpenAI API key." });
+      if (!genAI) {
+        return res.json({ response: "AI assistance is not configured. Please add your GEMINI_API_KEY to your environment variables." });
       }
 
       const userId = req.user.id;
@@ -585,19 +585,16 @@ export async function registerRoutes(
           systemPrompt += "Provide helpful suggestions to improve the academic writing.";
       }
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages: [
-          { role: "system", content: systemPrompt + context },
-          {
-            role: "user",
-            content: `Chapter: ${chapterTitle} \n\nContent: \n${content || "(empty)"} \n\nRequest: ${prompt} `,
-          },
-        ],
-        max_completion_tokens: 2048,
-      });
+      // Use Gemini 1.5 Flash model
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      res.json({ response: response.choices[0].message.content });
+      const fullPrompt = `${systemPrompt}${context}\n\nChapter: ${chapterTitle} \n\nContent: \n${content || "(empty)"} \n\nRequest: ${prompt}`;
+
+      const result = await model.generateContent(fullPrompt);
+      const response = result.response;
+      const text = response.text();
+
+      res.json({ response: text });
     } catch (error) {
       console.error("Error with AI assist:", error);
       res.status(500).json({ message: "Failed to get AI response" });
@@ -998,7 +995,7 @@ export async function registerRoutes(
         return res.status(400).json({ message: "No content found in thesis chapters to generate flashcards." });
       }
 
-      if (!openai) {
+      if (!genAI) {
         return res.json({ message: "AI is not configured." });
       }
 
@@ -1007,20 +1004,26 @@ export async function registerRoutes(
       Focus on the category: ${category}.
       
       Return the output as a JSON array of objects with 'front' (the question) and 'back' (the answer/key points).
-      Example: [{"front": "What is the limitation of...", "back": "The study is limited by..."}]`;
+      Example: [{"front": "What is the limitation of...", "back": "The study is limited by..."}]
+      
+      You MUST return ONLY valid JSON, no other text or formatting.`;
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: thesisContext },
-        ],
-        response_format: { type: "json_object" },
-      });
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
-      const content = response.choices[0].message.content;
-      const result = JSON.parse(content || "{\"cards\": []}");
-      const cards = result.cards || result.flashcards || result;
+      const result = await model.generateContent(`${systemPrompt}\n\nThesis Content:\n${thesisContext}`);
+      const response = result.response;
+      const content = response.text();
+
+      // Extract JSON from response (Gemini might wrap it in ```json```)
+      let jsonText = content.trim();
+      if (jsonText.startsWith('```json')) {
+        jsonText = jsonText.replace(/```json\n?/g, '').replace(/```\n?$/g, '');
+      } else if (jsonText.startsWith('```')) {
+        jsonText = jsonText.replace(/```\n?/g, '');
+      }
+
+      const parsed = JSON.parse(jsonText || "{\"cards\": []}");
+      const cards = parsed.cards || parsed.flashcards || parsed;
 
       // Save generated cards
       const savedCards = [];
@@ -1124,7 +1127,7 @@ export async function registerRoutes(
         });
       }
 
-      if (!openai) {
+      if (!genAI) {
         return res.json({ message: "AI is not configured. Methodology preferences saved.", chapterId: methodChapter.id });
       }
 
@@ -1145,15 +1148,10 @@ export async function registerRoutes(
 
       const userContext = `Thesis Title: ${thesis.title}\nTopic: ${thesis.topic}\nResearch Questions: ${thesis.researchQuestions?.join("\n")}`;
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-5",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContext },
-        ],
-      });
-
-      const generatedContent = response.choices[0].message.content || "";
+      const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+      const result = await model.generateContent(`${systemPrompt}\n\n${userContext}`);
+      const response = result.response;
+      const generatedContent = response.text() || "";
 
       // 4. Update Chapter Content
       await storage.updateChapter(methodChapter.id, {
