@@ -2,11 +2,12 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import multer from "multer";
-import pdf from "pdf-parse";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const pdf = require("pdf-parse");
 
 import {
   insertResearchEntrySchema,
@@ -14,10 +15,9 @@ import {
   insertFlashcardSchema,
 } from "@shared/schema";
 
-// Initialize Gemini AI client (using Gemini 1.5 Flash for fast, free responses)
-const genAI = process.env.GEMINI_API_KEY
-  ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY)
-  : null;
+import { aiService } from "./ai";
+
+// Validation schemas
 
 // Validation schemas
 const onboardingSchema = z.object({
@@ -585,20 +585,13 @@ export async function registerRoutes(
           systemPrompt += "Provide helpful suggestions to improve the academic writing.";
       }
 
-      // Use Gemini Pro Latest (fallback for robustness)
-      console.log("Using AI Model: gemini-pro-latest");
-      const model = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
+      const fullPrompt = `${context}\n\nChapter: ${chapterTitle} \n\nContent: \n${content || "(empty)"} \n\nRequest: ${prompt}`;
 
-      const fullPrompt = `${systemPrompt}${context}\n\nChapter: ${chapterTitle} \n\nContent: \n${content || "(empty)"} \n\nRequest: ${prompt}`;
-
-      const result = await model.generateContent(fullPrompt);
-      const response = result.response;
-      const text = response.text();
+      const text = await aiService.generateContent(fullPrompt, systemPrompt);
 
       res.json({ response: text });
     } catch (error: any) {
       console.error("Error with AI assist:", error);
-      // Return the actual error message for debugging purposes
       res.status(500).json({ message: error.message || "Failed to get AI response" });
     }
   });
@@ -997,10 +990,6 @@ export async function registerRoutes(
         return res.status(400).json({ message: "No content found in thesis chapters to generate flashcards." });
       }
 
-      if (!genAI) {
-        return res.json({ message: "AI is not configured." });
-      }
-
       const systemPrompt = `You are a strict PhD defense committee member. 
       Generate ${amount} challenging defense questions based on the provided thesis content.
       Focus on the category: ${category}.
@@ -1010,11 +999,7 @@ export async function registerRoutes(
       
       You MUST return ONLY valid JSON, no other text or formatting.`;
 
-      const model = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
-
-      const result = await model.generateContent(`${systemPrompt}\n\nThesis Content:\n${thesisContext}`);
-      const response = result.response;
-      const content = response.text();
+      const content = await aiService.generateContent(`${thesisContext}`, systemPrompt);
 
       // Extract JSON from response (Gemini might wrap it in ```json```)
       let jsonText = content.trim();
@@ -1150,10 +1135,7 @@ export async function registerRoutes(
 
       const userContext = `Thesis Title: ${thesis.title}\nTopic: ${thesis.topic}\nResearch Questions: ${thesis.researchQuestions?.join("\n")}`;
 
-      const model = genAI.getGenerativeModel({ model: "gemini-pro-latest" });
-      const result = await model.generateContent(`${systemPrompt}\n\n${userContext}`);
-      const response = result.response;
-      const generatedContent = response.text() || "";
+      const generatedContent = await aiService.generateContent(`${userContext}`, systemPrompt);
 
       // 4. Update Chapter Content
       await storage.updateChapter(methodChapter.id, {
