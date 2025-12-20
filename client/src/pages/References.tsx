@@ -49,6 +49,7 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Reference } from "@shared/schema";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ReferencesData {
   references: Reference[];
@@ -61,6 +62,7 @@ const citationStyles = [
 ];
 
 export default function References() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isAddingReference, setIsAddingReference] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -191,14 +193,14 @@ export default function References() {
   return (
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
       <div>
-        <h1 className="text-3xl font-semibold" data-testid="text-references-title">References & Knowledge</h1>
-        <p className="text-muted-foreground">Manage your citations and AI source documents</p>
+        <h1 className="text-3xl font-semibold" data-testid="text-references-title">{t.referencesTitle}</h1>
+        <p className="text-muted-foreground">{t.referencesDesc}</p>
       </div>
 
       <Tabs defaultValue="citations" className="w-full">
         <TabsList>
-          <TabsTrigger value="citations">Citations</TabsTrigger>
-          <TabsTrigger value="documents">Documents (AI Knowledge)</TabsTrigger>
+          <TabsTrigger value="citations">{t.tabCitations}</TabsTrigger>
+          <TabsTrigger value="documents">{t.tabDocuments}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="citations" className="space-y-6 mt-6">
@@ -218,23 +220,23 @@ export default function References() {
               </Select>
               <Button variant="outline" onClick={exportReferences} data-testid="button-export">
                 <Download className="h-4 w-4 mr-2" />
-                Export
+                {t.export}
               </Button>
               <Dialog open={isAddingReference} onOpenChange={setIsAddingReference}>
                 <DialogTrigger asChild>
                   <Button data-testid="button-add-reference">
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Reference
+                    {t.addReference}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
-                    <DialogTitle>Add Reference</DialogTitle>
-                    <DialogDescription>Add a new source to your reference list.</DialogDescription>
+                    <DialogTitle>{t.addReference}</DialogTitle>
+                    <DialogDescription>{t.referenceDetails}</DialogDescription>
                   </DialogHeader>
                   <div className="space-y-4 pt-4 max-h-[60vh] overflow-y-auto">
                     <div className="space-y-2">
-                      <Label htmlFor="title">Title *</Label>
+                      <Label htmlFor="title">{t.refTitle} *</Label>
                       <Input
                         id="title"
                         placeholder="Article or book title"
@@ -244,7 +246,7 @@ export default function References() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="authors">Authors</Label>
+                      <Label htmlFor="authors">{t.refAuthors}</Label>
                       <Input
                         id="authors"
                         placeholder="Last, First; Last, First (separated by commas)"
@@ -255,7 +257,7 @@ export default function References() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="year">Year</Label>
+                        <Label htmlFor="year">{t.refYear}</Label>
                         <Input
                           id="year"
                           type="number"
@@ -266,7 +268,7 @@ export default function References() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="source">Source</Label>
+                        <Label htmlFor="source">{t.refSource}</Label>
                         <Input
                           id="source"
                           placeholder="Journal, Book, Website"
@@ -277,7 +279,7 @@ export default function References() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="url">URL</Label>
+                      <Label htmlFor="url">{t.refUrl}</Label>
                       <Input
                         id="url"
                         placeholder="https://..."
@@ -287,7 +289,7 @@ export default function References() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="doi">DOI</Label>
+                      <Label htmlFor="doi">{t.refDoi}</Label>
                       <Input
                         id="doi"
                         placeholder="10.1000/xyz123"
@@ -297,10 +299,10 @@ export default function References() {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="notes">Notes</Label>
+                      <Label htmlFor="notes">{t.refNotes}</Label>
                       <Textarea
                         id="notes"
-                        placeholder="Personal notes about this source..."
+                        placeholder={t.refNotesPlaceholder}
                         value={newReference.notes}
                         onChange={(e) => setNewReference({ ...newReference, notes: e.target.value })}
                         rows={3}
@@ -313,7 +315,7 @@ export default function References() {
                       className="w-full"
                       data-testid="button-save-reference"
                     >
-                      {createReferenceMutation.isPending ? "Adding..." : "Add Reference"}
+                      {createReferenceMutation.isPending ? "Adding..." : t.addReference}
                     </Button>
                   </div>
                 </DialogContent>
@@ -324,7 +326,7 @@ export default function References() {
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search references..."
+              placeholder={t.search}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -337,17 +339,17 @@ export default function References() {
               <CardContent className="py-12 text-center">
                 <BookOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
                 <h3 className="text-lg font-medium mb-2">
-                  {searchQuery ? "No matches found" : "No references yet"}
+                  {searchQuery ? t.noMatches : t.noReferencesYet}
                 </h3>
                 <p className="text-muted-foreground mb-4">
                   {searchQuery
-                    ? "Try adjusting your search query."
-                    : "Add your first reference to start building your bibliography."}
+                    ? t.tryAdjusting
+                    : t.startBuilding}
                 </p>
                 {!searchQuery && (
                   <Button onClick={() => setIsAddingReference(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add First Reference
+                    {t.addFirstReference}
                   </Button>
                 )}
               </CardContent>
@@ -379,7 +381,7 @@ export default function References() {
                             <Button variant="ghost" size="sm" className="h-7" asChild>
                               <a href={reference.url} target="_blank" rel="noopener noreferrer">
                                 <ExternalLink className="h-3 w-3 mr-1" />
-                                View
+                                {t.view}
                               </a>
                             </Button>
                           )}
@@ -396,14 +398,14 @@ export default function References() {
                             onClick={() => copyToClipboard(formatCitation(reference, selectedStyle))}
                           >
                             <Copy className="h-4 w-4 mr-2" />
-                            Copy Citation
+                            {t.copyCitation}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => deleteReferenceMutation.mutate(reference.id)}
                             className="text-destructive"
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
+                            {t.delete}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

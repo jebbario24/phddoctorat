@@ -20,6 +20,7 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
 import { Book, FlaskConical, Users, Lightbulb, Send } from "lucide-react";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface JournalEntry {
     id: string;
@@ -48,6 +49,7 @@ const EntryColor = (type: string) => {
 };
 
 export default function ResearchJournal() {
+    const { t } = useTranslation();
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [content, setContent] = useState("");
@@ -83,20 +85,20 @@ export default function ResearchJournal() {
         <div className="container mx-auto p-6 max-w-4xl space-y-8">
             <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                    Research Journal
+                    {t.journalTitle}
                 </h1>
                 <p className="text-muted-foreground mt-2">
-                    Track your daily progress, experiments, meetings, and sudden realizations.
+                    {t.journalDesc}
                 </p>
             </div>
 
             <Card className="border-2 shadow-sm">
                 <CardHeader>
-                    <CardTitle className="text-lg font-medium">New Entry</CardTitle>
+                    <CardTitle className="text-lg font-medium">{t.newEntry}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                     <Textarea
-                        placeholder="What's on your mind today?"
+                        placeholder={t.entryPlaceholder}
                         className="min-h-[120px] resize-none text-base"
                         value={content}
                         onChange={(e) => setContent(e.target.value)}
@@ -104,25 +106,25 @@ export default function ResearchJournal() {
                     <div className="flex justify-between items-center">
                         <Select value={type} onValueChange={setType}>
                             <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Type" />
+                                <SelectValue placeholder={t.entryType} />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="thought">💭 Thought / Idea</SelectItem>
-                                <SelectItem value="meeting">👥 Meeting Note</SelectItem>
-                                <SelectItem value="experiment">🧪 Experiment</SelectItem>
-                                <SelectItem value="reading">📚 Reading Log</SelectItem>
+                                <SelectItem value="thought">💭 {t.typeThought}</SelectItem>
+                                <SelectItem value="meeting">👥 {t.typeMeeting}</SelectItem>
+                                <SelectItem value="experiment">🧪 {t.typeExperiment}</SelectItem>
+                                <SelectItem value="reading">📚 {t.typeReading}</SelectItem>
                             </SelectContent>
                         </Select>
                         <Button onClick={handleSubmit} disabled={!content.trim() || createMutation.isPending}>
                             <Send className="h-4 w-4 mr-2" />
-                            Log Entry
+                            {t.logEntry}
                         </Button>
                     </div>
                 </CardContent>
             </Card>
 
             <div className="space-y-6">
-                <h2 className="text-xl font-semibold pl-1">Timeline</h2>
+                <h2 className="text-xl font-semibold pl-1">{t.timeline}</h2>
                 <div className="relative pl-8 space-y-8 before:absolute before:inset-0 before:ml-3.5 before:h-full before:w-0.5 before:-translate-x-1/2 before:bg-gradient-to-b before:from-border before:to-transparent">
                     {entries.map((entry) => (
                         <div key={entry.id} className="relative group">
@@ -146,7 +148,7 @@ export default function ResearchJournal() {
                     ))}
                     {entries.length === 0 && (
                         <div className="text-center text-muted-foreground py-10">
-                            No entries yet. Start logging your research journey!
+                            {t.noEntries}
                         </div>
                     )}
                 </div>

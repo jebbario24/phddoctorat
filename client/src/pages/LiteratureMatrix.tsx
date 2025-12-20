@@ -22,6 +22,7 @@ import {
 import { Plus, Trash2, Edit2, Save } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface Reference {
     id: string;
@@ -37,6 +38,7 @@ interface Thesis {
 }
 
 export default function LiteratureMatrix() {
+    const { t } = useTranslation();
     const { toast } = useToast();
     const queryClient = useQueryClient();
     const [newColumnName, setNewColumnName] = useState("");
@@ -130,30 +132,30 @@ export default function LiteratureMatrix() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
-                        Literature Matrix
+                        {t.matrixTitle}
                     </h1>
                     <p className="text-muted-foreground mt-2">
-                        Synthesize your research by defining comparison criteria.
+                        {t.matrixDesc}
                     </p>
                 </div>
 
                 <Dialog>
                     <DialogTrigger asChild>
                         <Button>
-                            <Plus className="h-4 w-4 mr-2" /> Add Comparison Column
+                            <Plus className="h-4 w-4 mr-2" /> {t.addColumn}
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
-                            <DialogTitle>Add New Column</DialogTitle>
+                            <DialogTitle>{t.newColumn}</DialogTitle>
                         </DialogHeader>
                         <div className="flex gap-2 mt-4">
                             <Input
-                                placeholder="e.g., Methodology, Key Findings, Limitations"
+                                placeholder={t.columnPlaceholder}
                                 value={newColumnName}
                                 onChange={(e) => setNewColumnName(e.target.value)}
                             />
-                            <Button onClick={handleAddColumn}>Add</Button>
+                            <Button onClick={handleAddColumn}>{t.add}</Button>
                         </div>
                     </DialogContent>
                 </Dialog>
@@ -161,13 +163,13 @@ export default function LiteratureMatrix() {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>Research Synthesis</CardTitle>
+                    <CardTitle>{t.matrixTitle}</CardTitle>
                 </CardHeader>
                 <CardContent className="overflow-x-auto">
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead className="w-[300px] font-bold">Reference / Paper</TableHead>
+                                <TableHead className="w-[300px] font-bold">{t.referencePaper}</TableHead>
                                 {columns.map((col) => (
                                     <TableHead key={col} className="min-w-[200px] font-bold">
                                         <div className="flex items-center justify-between">
@@ -218,10 +220,10 @@ export default function LiteratureMatrix() {
                                                                 size="sm"
                                                                 onClick={() => setEditingCell(null)}
                                                             >
-                                                                Cancel
+                                                                {t.cancel}
                                                             </Button>
                                                             <Button size="sm" onClick={handleSaveCell}>
-                                                                <Save className="h-3 w-3 mr-1" /> Save
+                                                                <Save className="h-3 w-3 mr-1" /> {t.save}
                                                             </Button>
                                                         </div>
                                                     </div>
@@ -233,7 +235,7 @@ export default function LiteratureMatrix() {
                                                             setCellValue(value);
                                                         }}
                                                     >
-                                                        {value || <span className="text-muted-foreground italic">Click to add notes...</span>}
+                                                        {value || <span className="text-muted-foreground italic">{t.clickToNotes}</span>}
                                                     </div>
                                                 )}
                                             </TableCell>
@@ -244,7 +246,7 @@ export default function LiteratureMatrix() {
                             {references.length === 0 && (
                                 <TableRow>
                                     <TableCell colSpan={columns.length + 1} className="text-center h-24 text-muted-foreground">
-                                        No references found. Add references in the "References" tab to populate this matrix.
+                                        {t.noReferencesMatrix}
                                     </TableCell>
                                 </TableRow>
                             )}
