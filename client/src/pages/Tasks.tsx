@@ -33,20 +33,22 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Task, Chapter } from "@shared/schema";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface TasksData {
   tasks: Task[];
   chapters: Chapter[];
 }
 
-const columns = [
-  { id: "todo", title: "To Do", color: "bg-muted" },
-  { id: "in_progress", title: "In Progress", color: "bg-blue-100 dark:bg-blue-900/20" },
-  { id: "review", title: "Review", color: "bg-yellow-100 dark:bg-yellow-900/20" },
-  { id: "done", title: "Done", color: "bg-green-100 dark:bg-green-900/20" },
+const getColumns = (t: any) => [
+  { id: "todo", title: t.columnTodo, color: "bg-muted" },
+  { id: "in_progress", title: t.columnInProgress, color: "bg-blue-100 dark:bg-blue-900/20" },
+  { id: "review", title: t.columnReview, color: "bg-yellow-100 dark:bg-yellow-900/20" },
+  { id: "done", title: t.columnDone, color: "bg-green-100 dark:bg-green-900/20" },
 ];
 
 export default function Tasks() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTask, setNewTask] = useState({
@@ -70,10 +72,10 @@ export default function Tasks() {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       setIsAddingTask(false);
       setNewTask({ title: "", description: "", priority: "medium", chapterId: "", dueDate: "" });
-      toast({ title: "Task created", description: "Your task has been added." });
+      toast({ title: t.taskCreated, description: t.taskCreatedDesc });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to create task.", variant: "destructive" });
+      toast({ title: t.error || "Error", description: t.createTaskError, variant: "destructive" });
     },
   });
 
@@ -135,42 +137,43 @@ export default function Tasks() {
 
   const tasks = data?.tasks || [];
   const chapters = data?.chapters || [];
+  const columns = getColumns(t);
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" data-testid="text-tasks-title">Task Board</h1>
-          <p className="text-muted-foreground">Organize and track your thesis tasks</p>
+          <h1 className="text-3xl font-semibold" data-testid="text-tasks-title">{t.taskBoard}</h1>
+          <p className="text-muted-foreground">{t.taskBoardDesc}</p>
         </div>
         <Dialog open={isAddingTask} onOpenChange={setIsAddingTask}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-task">
               <Plus className="h-4 w-4 mr-2" />
-              Add Task
+              {t.addTaskBtn}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Task</DialogTitle>
-              <DialogDescription>Create a new task for your thesis work.</DialogDescription>
+              <DialogTitle>{t.addTaskDialogTitle}</DialogTitle>
+              <DialogDescription>{t.addTaskDialogDesc}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Title</Label>
+                <Label htmlFor="title">{t.taskTitle}</Label>
                 <Input
                   id="title"
-                  placeholder="e.g., Write introduction section"
+                  placeholder={t.taskTitlePlaceholder}
                   value={newTask.title}
                   onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                   data-testid="input-task-title"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t.taskDescription}</Label>
                 <Textarea
                   id="description"
-                  placeholder="Task details..."
+                  placeholder={t.taskDescPlaceholder}
                   value={newTask.description}
                   onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
                   rows={3}
@@ -179,7 +182,7 @@ export default function Tasks() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Priority</Label>
+                  <Label>{t.priority}</Label>
                   <Select
                     value={newTask.priority}
                     onValueChange={(value) => setNewTask({ ...newTask, priority: value })}
@@ -188,14 +191,14 @@ export default function Tasks() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="low">{t.priorityLow}</SelectItem>
+                      <SelectItem value="medium">{t.priorityMedium}</SelectItem>
+                      <SelectItem value="high">{t.priorityHigh}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="dueDate">Due Date</Label>
+                  <Label htmlFor="dueDate">{t.dueDate}</Label>
                   <Input
                     id="dueDate"
                     type="date"
@@ -207,13 +210,13 @@ export default function Tasks() {
               </div>
               {chapters.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Chapter (optional)</Label>
+                  <Label>{t.chapterOptional}</Label>
                   <Select
                     value={newTask.chapterId}
                     onValueChange={(value) => setNewTask({ ...newTask, chapterId: value })}
                   >
                     <SelectTrigger data-testid="select-task-chapter">
-                      <SelectValue placeholder="Select chapter" />
+                      <SelectValue placeholder={t.selectChapter} />
                     </SelectTrigger>
                     <SelectContent>
                       {chapters.map((chapter) => (
@@ -231,7 +234,7 @@ export default function Tasks() {
                 className="w-full"
                 data-testid="button-save-task"
               >
-                {createTaskMutation.isPending ? "Adding..." : "Add Task"}
+                {createTaskMutation.isPending ? t.addingTask : t.addTaskBtn}
               </Button>
             </div>
           </DialogContent>
@@ -291,7 +294,7 @@ export default function Tasks() {
                 ))}
                 {columnTasks.length === 0 && (
                   <div className="border-2 border-dashed border-muted rounded-lg p-4 text-center text-sm text-muted-foreground">
-                    Drop tasks here
+                    {t.dropTasksHere}
                   </div>
                 )}
               </div>

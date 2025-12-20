@@ -12,12 +12,11 @@ import {
   CheckCircle2,
   ArrowRight,
   BookOpen,
-  MessageSquare,
   Target,
   TrendingUp,
-  AlertCircle,
 } from "lucide-react";
 import type { Thesis, Chapter, Task, Milestone } from "@shared/schema";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface DashboardData {
   thesis: Thesis | null;
@@ -34,6 +33,7 @@ interface DashboardData {
 }
 
 export default function Dashboard() {
+  const { t } = useTranslation();
   const { data, isLoading } = useQuery<DashboardData>({
     queryKey: ["/api/dashboard"],
   });
@@ -54,13 +54,13 @@ export default function Dashboard() {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "final":
-        return "Final";
+        return t.statusFinal;
       case "revised":
-        return "Revised";
+        return t.statusRevised;
       case "under_review":
-        return "Under Review";
+        return t.statusUnderReview;
       default:
-        return "Draft";
+        return t.statusDraft;
     }
   };
 
@@ -93,8 +93,8 @@ export default function Dashboard() {
     upcomingDeadlines: 0,
   };
 
-  const progress = stats.totalChapters > 0 
-    ? Math.round((stats.completedChapters / stats.totalChapters) * 100) 
+  const progress = stats.totalChapters > 0
+    ? Math.round((stats.completedChapters / stats.totalChapters) * 100)
     : 0;
 
   const pendingTasks = tasks.filter((t) => !t.completed).slice(0, 5);
@@ -104,10 +104,10 @@ export default function Dashboard() {
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-semibold" data-testid="text-dashboard-title">
-          {thesis?.title || "Your Thesis"}
+          {thesis?.title || t.yourThesis}
         </h1>
         <p className="text-muted-foreground">
-          Track your progress and stay on top of your thesis work.
+          {t.dashboardDesc}
         </p>
       </div>
 
@@ -116,7 +116,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Word Count</p>
+                <p className="text-sm text-muted-foreground">{t.wordCount}</p>
                 <p className="text-2xl font-bold" data-testid="text-word-count">
                   {stats.totalWords.toLocaleString()}
                 </p>
@@ -132,7 +132,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Chapters</p>
+                <p className="text-sm text-muted-foreground">{t.chapters}</p>
                 <p className="text-2xl font-bold" data-testid="text-chapters">
                   {stats.completedChapters}/{stats.totalChapters}
                 </p>
@@ -148,7 +148,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Pending Tasks</p>
+                <p className="text-sm text-muted-foreground">{t.pendingTasks}</p>
                 <p className="text-2xl font-bold" data-testid="text-pending-tasks">
                   {stats.pendingTasks}
                 </p>
@@ -164,7 +164,7 @@ export default function Dashboard() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-muted-foreground">Progress</p>
+                <p className="text-sm text-muted-foreground">{t.progress}</p>
                 <p className="text-2xl font-bold" data-testid="text-progress">
                   {progress}%
                 </p>
@@ -182,12 +182,12 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-4">
             <div>
-              <CardTitle>Chapters</CardTitle>
-              <CardDescription>Your thesis structure</CardDescription>
+              <CardTitle>{t.chapters}</CardTitle>
+              <CardDescription>{t.areaThesisStructure}</CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/editor" data-testid="link-view-all-chapters">
-                View All <ArrowRight className="ml-1 h-4 w-4" />
+                {t.viewAll} <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </CardHeader>
@@ -195,9 +195,9 @@ export default function Dashboard() {
             {chapters.length === 0 ? (
               <div className="text-center py-8">
                 <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground mb-4">No chapters yet</p>
+                <p className="text-muted-foreground mb-4">{t.noChaptersDashboard}</p>
                 <Button asChild>
-                  <Link href="/editor" data-testid="button-create-chapter">Create First Chapter</Link>
+                  <Link href="/editor" data-testid="button-create-chapter">{t.createFirstChapter}</Link>
                 </Button>
               </div>
             ) : (
@@ -210,7 +210,7 @@ export default function Dashboard() {
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{chapter.title}</p>
                       <p className="text-sm text-muted-foreground">
-                        {chapter.wordCount?.toLocaleString() || 0} words
+                        {chapter.wordCount?.toLocaleString() || 0} {t.words}
                       </p>
                     </div>
                     <Badge variant="secondary" className={getStatusColor(chapter.status || "draft")}>
@@ -226,12 +226,12 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between gap-4">
             <div>
-              <CardTitle>Tasks</CardTitle>
-              <CardDescription>Things to do</CardDescription>
+              <CardTitle>{t.navTasks}</CardTitle>
+              <CardDescription>{t.thingsToDo}</CardDescription>
             </div>
             <Button variant="ghost" size="sm" asChild>
               <Link href="/tasks" data-testid="link-view-all-tasks">
-                View All <ArrowRight className="ml-1 h-4 w-4" />
+                {t.viewAll} <ArrowRight className="ml-1 h-4 w-4" />
               </Link>
             </Button>
           </CardHeader>
@@ -239,9 +239,9 @@ export default function Dashboard() {
             {pendingTasks.length === 0 ? (
               <div className="text-center py-8">
                 <CheckCircle2 className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                <p className="text-muted-foreground mb-4">All caught up!</p>
+                <p className="text-muted-foreground mb-4">{t.allCaughtUp}</p>
                 <Button asChild>
-                  <Link href="/tasks" data-testid="button-add-task">Add Task</Link>
+                  <Link href="/tasks" data-testid="button-add-task">{t.addTask}</Link>
                 </Button>
               </div>
             ) : (
@@ -252,13 +252,12 @@ export default function Dashboard() {
                     className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover-elevate"
                   >
                     <div
-                      className={`mt-0.5 h-4 w-4 rounded border-2 flex-shrink-0 ${
-                        task.priority === "high"
+                      className={`mt-0.5 h-4 w-4 rounded border-2 flex-shrink-0 ${task.priority === "high"
                           ? "border-destructive"
                           : task.priority === "medium"
-                          ? "border-yellow-500"
-                          : "border-muted-foreground"
-                      }`}
+                            ? "border-yellow-500"
+                            : "border-muted-foreground"
+                        }`}
                     />
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate">{task.title}</p>
@@ -280,12 +279,12 @@ export default function Dashboard() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between gap-4">
           <div>
-            <CardTitle>Milestones</CardTitle>
-            <CardDescription>Key thesis stages</CardDescription>
+            <CardTitle>{t.milestones}</CardTitle>
+            <CardDescription>{t.keyThesisStages}</CardDescription>
           </div>
           <Button variant="ghost" size="sm" asChild>
             <Link href="/planner" data-testid="link-view-planner">
-              View Planner <ArrowRight className="ml-1 h-4 w-4" />
+              {t.viewPlanner} <ArrowRight className="ml-1 h-4 w-4" />
             </Link>
           </Button>
         </CardHeader>
@@ -293,9 +292,9 @@ export default function Dashboard() {
           {upcomingMilestones.length === 0 ? (
             <div className="text-center py-8">
               <Calendar className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-              <p className="text-muted-foreground mb-4">No milestones set</p>
+              <p className="text-muted-foreground mb-4">{t.noMilestonesSet}</p>
               <Button asChild>
-                <Link href="/planner" data-testid="button-setup-milestones">Set Up Milestones</Link>
+                <Link href="/planner" data-testid="button-setup-milestones">{t.setUpMilestones}</Link>
               </Button>
             </div>
           ) : (

@@ -19,18 +19,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { GraduationCap } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslation } from "@/hooks/useTranslation";
 
-const authSchema = z.object({
-    email: z.string().email("Invalid email address"),
-    password: z.string().min(6, "Password must be at least 6 characters"),
+const getAuthSchema = (t: any) => z.object({
+    email: z.string().email(t.invalidEmail),
+    password: z.string().min(6, t.passwordMinLength),
 });
 
-const registerSchema = authSchema.extend({
-    firstName: z.string().min(1, "First name is required"),
-    lastName: z.string().min(1, "Last name is required"),
+const getRegisterSchema = (t: any) => getAuthSchema(t).extend({
+    firstName: z.string().min(1, t.firstNameRequired),
+    lastName: z.string().min(1, t.lastNameRequired),
 });
 
 export default function Auth() {
+    const { t } = useTranslation();
     const [, setLocation] = useLocation();
     const { loginMutation, registerMutation, user } = useAuth();
     const { toast } = useToast();
@@ -41,36 +43,36 @@ export default function Auth() {
         return null;
     }
 
-    const loginForm = useForm<z.infer<typeof authSchema>>({
-        resolver: zodResolver(authSchema),
+    const loginForm = useForm<z.infer<ReturnType<typeof getAuthSchema>>>({
+        resolver: zodResolver(getAuthSchema(t)),
         defaultValues: { email: "", password: "" },
     });
 
-    const registerForm = useForm<z.infer<typeof registerSchema>>({
-        resolver: zodResolver(registerSchema),
+    const registerForm = useForm<z.infer<ReturnType<typeof getRegisterSchema>>>({
+        resolver: zodResolver(getRegisterSchema(t)),
         defaultValues: { email: "", password: "", firstName: "", lastName: "" },
     });
 
-    const onLogin = async (data: z.infer<typeof authSchema>) => {
+    const onLogin = async (data: z.infer<ReturnType<typeof getAuthSchema>>) => {
         try {
             await loginMutation.mutateAsync(data);
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Login failed",
-                description: error.message || "Please check your credentials",
+                title: t.loginFailed,
+                description: error.message || t.loginFailedDesc,
             });
         }
     };
 
-    const onRegister = async (data: z.infer<typeof registerSchema>) => {
+    const onRegister = async (data: z.infer<ReturnType<typeof getRegisterSchema>>) => {
         try {
             await registerMutation.mutateAsync(data);
         } catch (error: any) {
             toast({
                 variant: "destructive",
-                title: "Registration failed",
-                description: error.message || "Could not create account",
+                title: t.registrationFailed,
+                description: error.message || t.registrationFailedDesc,
             });
         }
     };
@@ -88,16 +90,16 @@ export default function Auth() {
                 className="w-full max-w-md"
             >
                 <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="login">Login</TabsTrigger>
-                    <TabsTrigger value="register">Register</TabsTrigger>
+                    <TabsTrigger value="login">{t.loginTab}</TabsTrigger>
+                    <TabsTrigger value="register">{t.registerTab}</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="login">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Welcome back</CardTitle>
+                            <CardTitle>{t.welcomeBack}</CardTitle>
                             <CardDescription>
-                                Enter your credentials to access your thesis workspace.
+                                {t.loginDesc}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -108,9 +110,9 @@ export default function Auth() {
                                         name="email"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Email</FormLabel>
+                                                <FormLabel>{t.authEmail}</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="name@university.edu" {...field} />
+                                                    <Input placeholder={t.emailPlaceholder} {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -121,7 +123,7 @@ export default function Auth() {
                                         name="password"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Password</FormLabel>
+                                                <FormLabel>{t.authPassword}</FormLabel>
                                                 <FormControl>
                                                     <Input type="password" {...field} />
                                                 </FormControl>
@@ -134,7 +136,7 @@ export default function Auth() {
                                         className="w-full"
                                         disabled={loginMutation.isPending}
                                     >
-                                        {loginMutation.isPending ? "Logging in..." : "Login"}
+                                        {loginMutation.isPending ? t.loggingIn : t.loginBtn}
                                     </Button>
                                 </form>
                             </Form>
@@ -145,9 +147,9 @@ export default function Auth() {
                 <TabsContent value="register">
                     <Card>
                         <CardHeader>
-                            <CardTitle>Create an account</CardTitle>
+                            <CardTitle>{t.createAccount}</CardTitle>
                             <CardDescription>
-                                Start your thesis journey with Thesard.
+                                {t.registerDesc}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
@@ -159,9 +161,9 @@ export default function Auth() {
                                             name="firstName"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>First Name</FormLabel>
+                                                    <FormLabel>{t.authFirstName}</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Jane" {...field} />
+                                                        <Input placeholder={t.firstNamePlaceholder} {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -172,9 +174,9 @@ export default function Auth() {
                                             name="lastName"
                                             render={({ field }) => (
                                                 <FormItem>
-                                                    <FormLabel>Last Name</FormLabel>
+                                                    <FormLabel>{t.authLastName}</FormLabel>
                                                     <FormControl>
-                                                        <Input placeholder="Doe" {...field} />
+                                                        <Input placeholder={t.lastNamePlaceholder} {...field} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -186,9 +188,9 @@ export default function Auth() {
                                         name="email"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Email</FormLabel>
+                                                <FormLabel>{t.authEmail}</FormLabel>
                                                 <FormControl>
-                                                    <Input placeholder="name@university.edu" {...field} />
+                                                    <Input placeholder={t.emailPlaceholder} {...field} />
                                                 </FormControl>
                                                 <FormMessage />
                                             </FormItem>
@@ -199,7 +201,7 @@ export default function Auth() {
                                         name="password"
                                         render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel>Password</FormLabel>
+                                                <FormLabel>{t.authPassword}</FormLabel>
                                                 <FormControl>
                                                     <Input type="password" {...field} />
                                                 </FormControl>
@@ -212,7 +214,7 @@ export default function Auth() {
                                         className="w-full"
                                         disabled={registerMutation.isPending}
                                     >
-                                        {registerMutation.isPending ? "Configuring Account..." : "Create Account"}
+                                        {registerMutation.isPending ? t.configuringAccount : t.createAccountBtn}
                                     </Button>
                                 </form>
                             </Form>

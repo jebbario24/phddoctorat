@@ -9,8 +9,10 @@ import { Flashcard } from "@shared/schema";
 import { Loader2, BrainCircuit, RefreshCw, RotateCw, Check, X, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Progress } from "@/components/ui/progress";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function DefensePrep() {
+    const { t } = useTranslation();
     const { toast } = useToast();
     const [isFlipped, setIsFlipped] = useState(false);
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -32,15 +34,15 @@ export default function DefensePrep() {
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["/api/flashcards"] });
-            toast({ title: "Flashcards Generated", description: "New defense questions are ready!" });
+            toast({ title: t.flashcardsGenerated, description: t.flashcardsReady });
             setGenerating(false);
             setCurrentIndex(0);
             setIsFlipped(false);
         },
         onError: (error) => {
             setGenerating(false);
-            const errorMessage = error.message || "Failed to generate flashcards.";
-            toast({ title: "Error", description: errorMessage, variant: "destructive" });
+            const errorMessage = error.message || t.generateError;
+            toast({ title: t.error || "Error", description: errorMessage, variant: "destructive" });
         },
     });
 
@@ -89,27 +91,27 @@ export default function DefensePrep() {
         <div className="space-y-6">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Defense Prep</h1>
-                    <p className="text-muted-foreground">Master your defense with AI-generated flashcards.</p>
+                    <h1 className="text-3xl font-bold tracking-tight">{t.navDefensePrep}</h1>
+                    <p className="text-muted-foreground">{t.defensePrepDesc}</p>
                 </div>
                 <Button onClick={() => generateMutation.mutate()} disabled={generating}>
                     {generating ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <BrainCircuit className="mr-2 h-4 w-4" />}
-                    Generate Questions
+                    {t.generateQuestions}
                 </Button>
             </div>
 
             {/* Stats Overview */}
             <div className="grid gap-4 md:grid-cols-3">
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">New Questions</CardTitle></CardHeader>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">{t.statNew}</CardTitle></CardHeader>
                     <CardContent><div className="text-2xl font-bold text-blue-500">{masteryStats?.new || 0}</div></CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Learning</CardTitle></CardHeader>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">{t.statLearning}</CardTitle></CardHeader>
                     <CardContent><div className="text-2xl font-bold text-yellow-500">{masteryStats?.learning || 0}</div></CardContent>
                 </Card>
                 <Card>
-                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">Mastered</CardTitle></CardHeader>
+                    <CardHeader className="pb-2"><CardTitle className="text-sm font-medium">{t.statMastered}</CardTitle></CardHeader>
                     <CardContent><div className="text-2xl font-bold text-green-500">{masteryStats?.mastered || 0}</div></CardContent>
                 </Card>
             </div>
@@ -120,7 +122,7 @@ export default function DefensePrep() {
                     <div className="w-full max-w-xs flex justify-end">
                         <Select value={filterCategory} onValueChange={setFilterCategory}>
                             <SelectTrigger className="w-[180px]">
-                                <SelectValue placeholder="Category" />
+                                <SelectValue placeholder={t.categoryPlaceholder} />
                             </SelectTrigger>
                             <SelectContent>
                                 {categories.map(c => (
@@ -144,7 +146,7 @@ export default function DefensePrep() {
                                     <div className="text-sm text-muted-foreground uppercase tracking-widest mb-4">{currentCard?.category}</div>
                                     <h3 className="text-2xl font-semibold">{currentCard?.front}</h3>
                                     <div className="absolute bottom-4 right-4 text-xs text-muted-foreground flex items-center">
-                                        <RotateCw className="w-3 h-3 mr-1" /> Click to flip
+                                        <RotateCw className="w-3 h-3 mr-1" /> {t.clickToFlip}
                                     </div>
                                 </CardContent>
                             </Card>
@@ -155,7 +157,7 @@ export default function DefensePrep() {
                                 style={{ transform: "rotateY(180deg)" }}
                             >
                                 <CardContent>
-                                    <h4 className="text-sm font-semibold text-primary mb-4">Key Points / Answer</h4>
+                                    <h4 className="text-sm font-semibold text-primary mb-4">{t.keyPoints}</h4>
                                     <p className="text-lg leading-relaxed">{currentCard?.back}</p>
                                 </CardContent>
                             </Card>
@@ -163,7 +165,7 @@ export default function DefensePrep() {
                     </div>
 
                     <div className="flex items-center gap-4 w-full max-w-2xl justify-between">
-                        <Button variant="outline" onClick={handlePrev}>Previous</Button>
+                        <Button variant="outline" onClick={handlePrev}>{t.prev}</Button>
 
                         {isFlipped && (
                             <div className="flex gap-2">
@@ -173,7 +175,7 @@ export default function DefensePrep() {
                                     className="text-red-500 hover:text-red-600 hover:bg-red-50"
                                     onClick={(e) => { e.stopPropagation(); masteryMutation.mutate({ id: currentCard!.id, level: 1 }); handleNext(); }}
                                 >
-                                    Hard
+                                    {t.difficultyHard}
                                 </Button>
                                 <Button
                                     size="sm"
@@ -181,7 +183,7 @@ export default function DefensePrep() {
                                     className="text-yellow-500 hover:text-yellow-600 hover:bg-yellow-50"
                                     onClick={(e) => { e.stopPropagation(); masteryMutation.mutate({ id: currentCard!.id, level: 3 }); handleNext(); }}
                                 >
-                                    Good
+                                    {t.difficultyGood}
                                 </Button>
                                 <Button
                                     size="sm"
@@ -189,28 +191,28 @@ export default function DefensePrep() {
                                     className="text-green-500 hover:text-green-600 hover:bg-green-50"
                                     onClick={(e) => { e.stopPropagation(); masteryMutation.mutate({ id: currentCard!.id, level: 5 }); handleNext(); }}
                                 >
-                                    Easy
+                                    {t.difficultyEasy}
                                 </Button>
                             </div>
                         )}
 
-                        <Button variant="outline" onClick={handleNext}>Next</Button>
+                        <Button variant="outline" onClick={handleNext}>{t.next}</Button>
                     </div>
 
                     <div className="text-sm text-muted-foreground">
-                        Card {currentIndex + 1} of {filteredCards?.length}
+                        {t.cardOf} {currentIndex + 1} {t.of} {filteredCards?.length}
                     </div>
                 </div>
             ) : (
                 <Card className="p-12 text-center">
                     <div className="flex flex-col items-center gap-4">
                         <BrainCircuit className="h-12 w-12 text-muted-foreground" />
-                        <h3 className="text-xl font-semibold">No Flashcards Yet</h3>
+                        <h3 className="text-xl font-semibold">{t.noFlashcards}</h3>
                         <p className="text-muted-foreground max-w-sm mx-auto">
-                            Generate your first set of defense prep questions based on your thesis content.
+                            {t.noFlashcardsDesc}
                         </p>
                         <Button onClick={() => generateMutation.mutate()} disabled={generating}>
-                            {generating ? "Generating..." : "Generate Questions"}
+                            {generating ? t.generating : t.generateQuestions}
                         </Button>
                     </div>
                 </Card>

@@ -26,6 +26,7 @@ import {
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { Milestone, Thesis } from "@shared/schema";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface PlannerData {
   thesis: Thesis | null;
@@ -44,6 +45,7 @@ const defaultMilestones = [
 ];
 
 export default function Planner() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isAddingMilestone, setIsAddingMilestone] = useState(false);
   const [newMilestone, setNewMilestone] = useState({
@@ -65,10 +67,10 @@ export default function Planner() {
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
       setIsAddingMilestone(false);
       setNewMilestone({ name: "", description: "", targetDate: "" });
-      toast({ title: "Milestone added", description: "Your milestone has been created." });
+      toast({ title: t.milestoneAdded, description: t.milestoneCreatedDesc });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to create milestone.", variant: "destructive" });
+      toast({ title: t.error || "Error", description: t.createMilestoneError, variant: "destructive" });
     },
   });
 
@@ -89,10 +91,10 @@ export default function Planner() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/planner"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard"] });
-      toast({ title: "Milestones created", description: "Default thesis milestones have been set up." });
+      toast({ title: t.milestonesCreated, description: t.defaultMilestonesDesc });
     },
     onError: () => {
-      toast({ title: "Error", description: "Failed to create milestones.", variant: "destructive" });
+      toast({ title: t.error || "Error", description: t.createMilestonesError, variant: "destructive" });
     },
   });
 
@@ -119,46 +121,46 @@ export default function Planner() {
     <div className="p-6 space-y-6 max-w-5xl mx-auto">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-semibold" data-testid="text-planner-title">Thesis Planner</h1>
-          <p className="text-muted-foreground">Track your thesis milestones and timeline</p>
+          <h1 className="text-3xl font-semibold" data-testid="text-planner-title">{t.plannerTitle}</h1>
+          <p className="text-muted-foreground">{t.plannerDesc}</p>
         </div>
         <Dialog open={isAddingMilestone} onOpenChange={setIsAddingMilestone}>
           <DialogTrigger asChild>
             <Button data-testid="button-add-milestone">
               <Plus className="h-4 w-4 mr-2" />
-              Add Milestone
+              {t.addMilestone}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add Milestone</DialogTitle>
+              <DialogTitle>{t.addMilestoneDialogTitle}</DialogTitle>
               <DialogDescription>
-                Create a new milestone for your thesis timeline.
+                {t.addMilestoneDialogDesc}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{t.milestoneName}</Label>
                 <Input
                   id="name"
-                  placeholder="e.g., Complete Literature Review"
+                  placeholder={t.milestonePlaceholder}
                   value={newMilestone.name}
                   onChange={(e) => setNewMilestone({ ...newMilestone, name: e.target.value })}
                   data-testid="input-milestone-name"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t.milestoneDescription}</Label>
                 <Input
                   id="description"
-                  placeholder="Brief description..."
+                  placeholder={t.descriptionPlaceholder}
                   value={newMilestone.description}
                   onChange={(e) => setNewMilestone({ ...newMilestone, description: e.target.value })}
                   data-testid="input-milestone-description"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="targetDate">Target Date</Label>
+                <Label htmlFor="targetDate">{t.targetDate}</Label>
                 <Input
                   id="targetDate"
                   type="date"
@@ -173,7 +175,7 @@ export default function Planner() {
                 className="w-full"
                 data-testid="button-save-milestone"
               >
-                {createMilestoneMutation.isPending ? "Adding..." : "Add Milestone"}
+                {createMilestoneMutation.isPending ? t.adding : t.addMilestone}
               </Button>
             </div>
           </DialogContent>
@@ -184,7 +186,7 @@ export default function Planner() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
-            Overall Progress
+            {t.overallProgress}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -193,7 +195,7 @@ export default function Planner() {
             <span className="text-lg font-semibold" data-testid="text-overall-progress">{progress}%</span>
           </div>
           <p className="text-sm text-muted-foreground mt-2">
-            {completedCount} of {milestones.length} milestones completed
+            {completedCount} {t.milestonesCompleted} {milestones.length} {t.milestonesCompletedSuffix}
           </p>
         </CardContent>
       </Card>
@@ -202,9 +204,9 @@ export default function Planner() {
         <Card>
           <CardContent className="py-12 text-center">
             <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No milestones yet</h3>
+            <h3 className="text-lg font-medium mb-2">{t.noMilestonesYet}</h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-              Set up your thesis timeline with key milestones to track your progress.
+              {t.noMilestonesDesc}
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Button
@@ -213,10 +215,10 @@ export default function Planner() {
                 data-testid="button-use-template"
               >
                 <Flag className="h-4 w-4 mr-2" />
-                {initializeMilestonesMutation.isPending ? "Creating..." : "Use Default Template"}
+                {initializeMilestonesMutation.isPending ? t.creatingMilestones : t.useDefaultTemplate}
               </Button>
               <Button variant="outline" onClick={() => setIsAddingMilestone(true)}>
-                Create Custom
+                {t.createCustom}
               </Button>
             </div>
           </CardContent>
@@ -234,11 +236,10 @@ export default function Planner() {
                       completed: !milestone.completed,
                     })
                   }
-                  className={`absolute left-0 top-0 h-12 w-12 rounded-full border-4 flex items-center justify-center transition-colors ${
-                    milestone.completed
-                      ? "bg-primary border-primary text-primary-foreground"
-                      : "bg-background border-muted hover:border-primary"
-                  }`}
+                  className={`absolute left-0 top-0 h-12 w-12 rounded-full border-4 flex items-center justify-center transition-colors ${milestone.completed
+                    ? "bg-primary border-primary text-primary-foreground"
+                    : "bg-background border-muted hover:border-primary"
+                    }`}
                   data-testid={`button-toggle-milestone-${index}`}
                 >
                   {milestone.completed ? (
