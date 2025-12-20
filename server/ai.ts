@@ -16,14 +16,13 @@ export class AIService {
 
   constructor() {
     this.config = {
-      provider: (process.env.AI_PROVIDER as AIProvider) || "gemini",
-      // Base URL behavior:
-      // - local: defaults to http://localhost:11434/v1
-      // - openai: defaults to https://api.openai.com/v1
-      baseUrl: process.env.AI_BASE_URL,
-      modelName: process.env.AI_MODEL_NAME || "gemini-pro-latest",
+      provider: (process.env.AI_PROVIDER as AIProvider) || "openai",
+      // DeepSeek API configuration
+      baseUrl: process.env.AI_BASE_URL || "https://api.deepseek.com",
+      modelName: process.env.AI_MODEL_NAME || "deepseek-chat",
       apiKey: process.env.GEMINI_API_KEY,
-      openaiKey: process.env.OPENAI_API_KEY,
+      // DeepSeek uses DEEPSEEK_API_KEY
+      openaiKey: process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY,
     };
 
     if (this.config.provider === "gemini" && this.config.apiKey) {
