@@ -85,7 +85,7 @@ app.use((req, res, next) => {
   const port = parseInt(process.env.PORT || "5000", 10);
   httpServer.listen(
     port,
-    "localhost",
+    "0.0.0.0",
     () => {
       log(`serving on port ${port}`);
     },
