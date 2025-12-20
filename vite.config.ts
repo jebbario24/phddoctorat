@@ -30,21 +30,7 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
-    rollupOptions: {
-      output: {
-        manualChunks(id) {
-          // Only split React core to avoid dependency issues
-          if (id.includes('node_modules')) {
-            // React and React-DOM together (they must stay together)
-            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
-              return 'vendor-react';
-            }
-            // All other vendor libraries in one chunk to avoid dependency issues
-            return 'vendor';
-          }
-        },
-      },
-    },
+    // Let Vite handle chunking automatically to avoid dependency issues
   },
   server: {
     fs: {
