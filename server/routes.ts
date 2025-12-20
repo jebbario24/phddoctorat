@@ -5,9 +5,15 @@ import { setupAuth, isAuthenticated } from "./auth";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import multer from "multer";
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const pdf = require("pdf-parse");
+
+// Lazy-load pdf-parse to avoid import.meta issues in CJS builds
+const getPdfParser = () => {
+  try {
+    return require("pdf-parse");
+  } catch (e) {
+    throw new Error("pdf-parse module not found");
+  }
+};
 
 import {
   insertResearchEntrySchema,
@@ -852,6 +858,7 @@ export async function registerRoutes(
       try {
         if (req.file.mimetype === "application/pdf") {
           console.log("Parsing PDF...");
+          const pdf = getPdfParser();
           const data = await pdf(req.file.buffer);
           content = data.text;
           console.log("PDF parsed successfully, length: " + content.length);
