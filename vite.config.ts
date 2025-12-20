@@ -33,38 +33,14 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
-          // Split vendor libraries into separate chunks
+          // Only split React core to avoid dependency issues
           if (id.includes('node_modules')) {
-            // React core
-            if (id.includes('react') || id.includes('react-dom')) {
+            // React and React-DOM together (they must stay together)
+            if (id.includes('react') || id.includes('react-dom') || id.includes('scheduler')) {
               return 'vendor-react';
             }
-            // Router
-            if (id.includes('wouter')) {
-              return 'vendor-router';
-            }
-            // React Query
-            if (id.includes('@tanstack/react-query')) {
-              return 'vendor-query';
-            }
-            // Form libraries
-            if (id.includes('react-hook-form') || id.includes('@hookform') || id.includes('zod')) {
-              return 'vendor-form';
-            }
-            // Radix UI components
-            if (id.includes('@radix-ui')) {
-              return 'vendor-ui';
-            }
-            // Icons
-            if (id.includes('lucide-react')) {
-              return 'vendor-icons';
-            }
-            // Utility libraries
-            if (id.includes('clsx') || id.includes('tailwind-merge') || id.includes('class-variance-authority')) {
-              return 'vendor-utils';
-            }
-            // All other vendor code
-            return 'vendor-other';
+            // All other vendor libraries in one chunk to avoid dependency issues
+            return 'vendor';
           }
         },
       },
