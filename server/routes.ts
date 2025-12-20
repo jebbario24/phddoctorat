@@ -535,10 +535,6 @@ export async function registerRoutes(
         return res.status(400).json({ message: "Invalid data", errors: parsed.error.flatten() });
       }
 
-      if (!genAI) {
-        return res.json({ response: "AI assistance is not configured. Please add your GEMINI_API_KEY to your environment variables." });
-      }
-
       const userId = req.user.id;
       const thesis = await storage.getThesisByUserId(userId);
       let context = "";
@@ -1119,10 +1115,6 @@ export async function registerRoutes(
           content: "",
           status: "draft",
         });
-      }
-
-      if (!genAI) {
-        return res.json({ message: "AI is not configured. Methodology preferences saved.", chapterId: methodChapter.id });
       }
 
       // 3. Generate Content
