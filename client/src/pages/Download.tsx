@@ -7,12 +7,26 @@ import { Link } from "wouter";
 export default function DownloadPage() {
     const [platform, setPlatform] = useState<"windows" | "mac" | "linux" | "unknown">("unknown");
 
+    const GITHUB_REPO = "jebbario24/phddoctorat";
+    const VERSION = "1.0.0";
+    const BASE_URL = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}`;
+
+    const DOWNLOAD_LINKS = {
+        windows: `${BASE_URL}/PhD.Thesis.Buddy.Setup.${VERSION}.exe`,
+        mac: `${BASE_URL}/PhD.Thesis.Buddy-${VERSION}.dmg`,
+        linux: `${BASE_URL}/PhD.Thesis.Buddy-${VERSION}.AppImage`
+    };
+
     useEffect(() => {
         const userAgent = navigator.userAgent.toLowerCase();
         if (userAgent.includes("win")) setPlatform("windows");
         else if (userAgent.includes("mac")) setPlatform("mac");
         else if (userAgent.includes("linux")) setPlatform("linux");
     }, []);
+
+    const openLink = (url: string) => {
+        window.open(url, '_blank');
+    };
 
     return (
         <div className="min-h-screen bg-background flex flex-col">
@@ -37,6 +51,9 @@ export default function DownloadPage() {
                     <p className="text-xl text-muted-foreground">
                         Get the full power of PhD Thesis Buddy on your computer. Offline access, local processing, and better performance.
                     </p>
+                    <p className="text-sm text-muted-foreground mt-4">
+                        Latest Version: v{VERSION}
+                    </p>
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 max-w-5xl w-full">
@@ -55,7 +72,7 @@ export default function DownloadPage() {
                             <CardDescription>Windows 10 or later (64-bit)</CardDescription>
                         </CardHeader>
                         <CardContent className="text-center">
-                            <Button className="w-full gap-2" size="lg">
+                            <Button className="w-full gap-2" size="lg" onClick={() => openLink(DOWNLOAD_LINKS.windows)}>
                                 <Download className="w-4 h-4" />
                                 Download for Windows
                             </Button>
@@ -78,7 +95,7 @@ export default function DownloadPage() {
                             <CardDescription>macOS 11.0 or later</CardDescription>
                         </CardHeader>
                         <CardContent className="text-center">
-                            <Button className="w-full gap-2" size="lg" variant="outline">
+                            <Button className="w-full gap-2" size="lg" variant="outline" onClick={() => openLink(DOWNLOAD_LINKS.mac)}>
                                 <Download className="w-4 h-4" />
                                 Download for Mac
                             </Button>
@@ -101,7 +118,7 @@ export default function DownloadPage() {
                             <CardDescription>Ubuntu, Debian, Fedora</CardDescription>
                         </CardHeader>
                         <CardContent className="text-center">
-                            <Button className="w-full gap-2" size="lg" variant="outline">
+                            <Button className="w-full gap-2" size="lg" variant="outline" onClick={() => openLink(DOWNLOAD_LINKS.linux)}>
                                 <Download className="w-4 h-4" />
                                 Download for Linux
                             </Button>
