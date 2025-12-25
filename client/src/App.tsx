@@ -12,6 +12,7 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/Landing";
 import Onboarding from "@/pages/Onboarding";
 import Dashboard from "@/pages/Dashboard";
+import DownloadPage from "@/pages/Download";
 import Planner from "@/pages/Planner";
 import Tasks from "@/pages/Tasks";
 import Editor from "@/pages/Editor";
@@ -60,6 +61,7 @@ function Router() {
     return (
       <Switch>
         <Route path="/auth" component={Auth} />
+        <Route path="/download" component={DownloadPage} />
         <Route path="/" component={Landing} />
         <Route component={Landing} />
       </Switch>
