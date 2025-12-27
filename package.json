@@ -158,6 +158,13 @@
       ],
       "icon": "build/icon.png",
       "category": "Education"
-    }
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "jebbario24",
+        "repo": "phddoctorat"
+      }
+    ]
   }
 }

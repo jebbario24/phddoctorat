@@ -1,30 +1,68 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Download, Monitor, Apple, Smartphone } from "lucide-react";
+import { Download, Monitor, Apple, Smartphone, Loader2, AlertCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "wouter";
 
+interface ReleaseAsset {
+    name: string;
+    browser_download_url: string;
+}
+
+interface ReleaseData {
+    tag_name: string;
+    assets: ReleaseAsset[];
+}
+
 export default function DownloadPage() {
     const [platform, setPlatform] = useState<"windows" | "mac" | "linux" | "unknown">("unknown");
+    const [releaseData, setReleaseData] = useState<ReleaseData | null>(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const GITHUB_REPO = "jebbario24/phddoctorat";
-    const VERSION = "1.0.0";
-    const BASE_URL = `https://github.com/${GITHUB_REPO}/releases/download/v${VERSION}`;
-
-    const DOWNLOAD_LINKS = {
-        windows: `${BASE_URL}/PhD.Thesis.Buddy.Setup.${VERSION}.exe`,
-        mac: `${BASE_URL}/PhD.Thesis.Buddy-${VERSION}.dmg`,
-        linux: `${BASE_URL}/PhD.Thesis.Buddy-${VERSION}.AppImage`
-    };
 
     useEffect(() => {
         const userAgent = navigator.userAgent.toLowerCase();
         if (userAgent.includes("win")) setPlatform("windows");
         else if (userAgent.includes("mac")) setPlatform("mac");
         else if (userAgent.includes("linux")) setPlatform("linux");
+
+        // Fetch latest release
+        fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`)
+            .then(async (res) => {
+                if (!res.ok) {
+                    if (res.status === 404) throw new Error("No releases found yet.");
+                    throw new Error("Failed to fetch latest release");
+                }
+                return res.json();
+            })
+            .then((data) => {
+                setReleaseData(data);
+                setLoading(false);
+            })
+            .catch((err) => {
+                console.error("Error fetching release:", err);
+                setError(err.message);
+                setLoading(false);
+            });
     }, []);
 
+    const getDownloadLink = (os: "windows" | "mac" | "linux") => {
+        if (!releaseData) return "#";
+
+        const extensionMap = {
+            windows: ".exe",
+            mac: ".dmg",
+            linux: ".AppImage"
+        };
+
+        const asset = releaseData.assets.find(a => a.name.endsWith(extensionMap[os]));
+        return asset?.browser_download_url || "#";
+    };
+
     const openLink = (url: string) => {
+        if (url === "#") return;
         window.open(url, '_blank');
     };
 
@@ -51,9 +89,19 @@ export default function DownloadPage() {
                     <p className="text-xl text-muted-foreground">
                         Get the full power of PhD Thesis Buddy on your computer. Offline access, local processing, and better performance.
                     </p>
-                    <p className="text-sm text-muted-foreground mt-4">
-                        Latest Version: v{VERSION}
-                    </p>
+                    {loading ? (
+                        <div className="flex justify-center items-center gap-2 mt-4 text-muted-foreground">
+                            <Loader2 className="h-4 w-4 animate-spin" /> Checking for latest version...
+                        </div>
+                    ) : error ? (
+                        <div className="flex justify-center items-center gap-2 mt-4 text-amber-500">
+                            <AlertCircle className="h-4 w-4" /> {error}
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground mt-4">
+                            Latest Version: {releaseData?.tag_name}
+                        </p>
+                    )}
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-8 max-w-5xl w-full">
@@ -72,9 +120,14 @@ export default function DownloadPage() {
                             <CardDescription>Windows 10 or later (64-bit)</CardDescription>
                         </CardHeader>
                         <CardContent className="text-center">
-                            <Button className="w-full gap-2" size="lg" onClick={() => openLink(DOWNLOAD_LINKS.windows)}>
+                            <Button
+                                className="w-full gap-2"
+                                size="lg"
+                                onClick={() => openLink(getDownloadLink("windows"))}
+                                disabled={loading || !getDownloadLink("windows") || getDownloadLink("windows") === "#"}
+                            >
                                 <Download className="w-4 h-4" />
-                                Download for Windows
+                                {loading ? "Loading..." : "Download for Windows"}
                             </Button>
                             <p className="text-xs text-muted-foreground mt-2">.exe installer • 150MB</p>
                         </CardContent>
@@ -95,9 +148,15 @@ export default function DownloadPage() {
                             <CardDescription>macOS 11.0 or later</CardDescription>
                         </CardHeader>
                         <CardContent className="text-center">
-                            <Button className="w-full gap-2" size="lg" variant="outline" onClick={() => openLink(DOWNLOAD_LINKS.mac)}>
+                            <Button
+                                className="w-full gap-2"
+                                size="lg"
+                                variant="outline"
+                                onClick={() => openLink(getDownloadLink("mac"))}
+                                disabled={loading || !getDownloadLink("mac") || getDownloadLink("mac") === "#"}
+                            >
                                 <Download className="w-4 h-4" />
-                                Download for Mac
+                                {loading ? "Loading..." : "Download for Mac"}
                             </Button>
                             <p className="text-xs text-muted-foreground mt-2">.dmg installer • Apple Silicon & Intel</p>
                         </CardContent>
@@ -118,9 +177,15 @@ export default function DownloadPage() {
                             <CardDescription>Ubuntu, Debian, Fedora</CardDescription>
                         </CardHeader>
                         <CardContent className="text-center">
-                            <Button className="w-full gap-2" size="lg" variant="outline" onClick={() => openLink(DOWNLOAD_LINKS.linux)}>
+                            <Button
+                                className="w-full gap-2"
+                                size="lg"
+                                variant="outline"
+                                onClick={() => openLink(getDownloadLink("linux"))}
+                                disabled={loading || !getDownloadLink("linux") || getDownloadLink("linux") === "#"}
+                            >
                                 <Download className="w-4 h-4" />
-                                Download for Linux
+                                {loading ? "Loading..." : "Download for Linux"}
                             </Button>
                             <p className="text-xs text-muted-foreground mt-2">.AppImage • Universal</p>
                         </CardContent>
