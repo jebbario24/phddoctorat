@@ -3,6 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "license": "MIT",
+  "author": {
+    "name": "Amal Mouaki",
+    "email": "jebbario23@gmail.com"
+  },
   "main": "dist/electron/main.js",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx --env-file=.env server/index.ts",
