@@ -83,6 +83,9 @@ export default function Landing() {
           </div>
           <div className="flex items-center gap-2">
             <ThemeToggle />
+            <Button variant="ghost" asChild data-testid="link-download">
+              <Link href="/download">Download App</Link>
+            </Button>
             <Button variant="ghost" asChild data-testid="link-login">
               <Link href="/auth">Log In</Link>
             </Button>
