@@ -24,11 +24,12 @@ function startServer(): Promise<number> {
                 }
             });
         } else {
-            // In production, run the built server bundle
-            serverProcess = spawn('node', ['dist/index.cjs'], {
+            // In production, run the built server bundle using Electron's internal Node
+            serverProcess = spawn(process.execPath, ['dist/index.cjs'], {
                 cwd: app.getAppPath(),
                 env: {
                     ...process.env,
+                    ELECTRON_RUN_AS_NODE: '1',
                     NODE_ENV: 'production',
                     IS_DESKTOP: 'true',
                     PORT: serverPort.toString(),
