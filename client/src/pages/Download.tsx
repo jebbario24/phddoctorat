@@ -28,17 +28,22 @@ export default function DownloadPage() {
         else if (userAgent.includes("mac")) setPlatform("mac");
         else if (userAgent.includes("linux")) setPlatform("linux");
 
-        // Fetch latest release
-        fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`)
+        // Fetch latest releases
+        fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases`)
             .then(async (res) => {
                 if (!res.ok) {
                     if (res.status === 404) throw new Error("No releases found yet.");
-                    throw new Error("Failed to fetch latest release");
+                    throw new Error("Failed to fetch releases");
                 }
                 return res.json();
             })
             .then((data) => {
-                setReleaseData(data);
+                if (Array.isArray(data) && data.length > 0) {
+                    setReleaseData(data[0]);
+                } else if (!Array.isArray(data) && data.tag_name) {
+                    // Fallback if API behavior changes
+                    setReleaseData(data);
+                }
                 setLoading(false);
             })
             .catch((err) => {
