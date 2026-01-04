@@ -17,11 +17,11 @@ function startServer(): Promise<number> {
                 cwd: app.getAppPath(),
                 env: {
                     ...process.env,
-                    NODE_ENV: 'desktop',
+                    NODE_ENV: 'development',
+                    IS_DESKTOP: 'true',
                     PORT: serverPort.toString(),
                     DATABASE_URL: `sqlite:${path.join(app.getPath('userData'), 'database.db')}`,
-                },
-                shell: true,
+                }
             });
         } else {
             // In production, run the built server bundle
@@ -29,11 +29,11 @@ function startServer(): Promise<number> {
                 cwd: app.getAppPath(),
                 env: {
                     ...process.env,
-                    NODE_ENV: 'desktop',
+                    NODE_ENV: 'production',
+                    IS_DESKTOP: 'true',
                     PORT: serverPort.toString(),
                     DATABASE_URL: `sqlite:${path.join(app.getPath('userData'), 'database.db')}`,
-                },
-                shell: true,
+                }
             });
         }
 

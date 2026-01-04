@@ -7,7 +7,7 @@ import * as schema from "@shared/schema";
 const { Pool } = pg;
 
 // Detect if running in desktop mode (Electron)
-const isDesktopMode = process.env.NODE_ENV === "desktop";
+const isDesktopMode = process.env.NODE_ENV === "desktop" || process.env.IS_DESKTOP === "true";
 
 let db: any;
 let pool: pg.Pool | null = null;

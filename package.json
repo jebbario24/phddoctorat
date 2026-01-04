@@ -1,6 +1,6 @@
 {
   "name": "thesard-app",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "type": "module",
   "license": "MIT",
   "author": {
@@ -15,7 +15,7 @@
     "migrate": "tsx server/migrate.ts",
     "check": "tsc",
     "db:push": "drizzle-kit push",
-    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:5000 && electron .\"",
+    "electron:dev": "electron .",
     "electron:build": "npm run build && tsc -p electron/tsconfig.json && electron-builder",
     "electron:build:win": "npm run build && tsc -p electron/tsconfig.json && electron-builder --win",
     "electron:build:mac": "npm run build && tsc -p electron/tsconfig.json && electron-builder --mac",
@@ -148,7 +148,7 @@
       "target": [
         "nsis"
       ],
-      "icon": "build/icon.ico"
+      "icon": "build/icon.png"
     },
     "mac": {
       "target": [
