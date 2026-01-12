@@ -7,20 +7,14 @@
     "name": "Amal Mouaki",
     "email": "jebbario23@gmail.com"
   },
-  "main": "dist/electron/main.cjs",
+  "main": "dist/index.cjs",
   "scripts": {
     "dev": "cross-env NODE_ENV=development tsx --env-file=.env server/index.ts",
     "build": "tsx script/build.ts",
     "start": "node dist/migrate.cjs && cross-env NODE_ENV=production node dist/index.cjs",
     "migrate": "tsx server/migrate.ts",
     "check": "tsc",
-    "db:push": "drizzle-kit push",
-    "electron:dev": "electron .",
-    "electron:build": "npm run build && tsc -p electron/tsconfig.json && electron-builder",
-    "electron:build:win": "npm run build && tsc -p electron/tsconfig.json && electron-builder --win",
-    "electron:build:mac": "npm run build && tsc -p electron/tsconfig.json && electron-builder --mac",
-    "electron:build:linux": "npm run build && tsc -p electron/tsconfig.json && electron-builder --linux",
-    "electron:build:ci": "npm run build && tsc -p electron/tsconfig.json && node -e \"require('fs').renameSync('dist/electron/main.js', 'dist/electron/main.cjs')\" && electron-builder"
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
@@ -114,63 +108,18 @@
     "@types/ws": "^8.5.13",
     "@vitejs/plugin-react": "^4.7.0",
     "autoprefixer": "^10.4.20",
-    "concurrently": "^9.2.1",
     "cross-env": "^10.1.0",
     "dotenv": "^17.2.3",
     "drizzle-kit": "^0.31.4",
-    "electron": "^39.2.7",
-    "electron-builder": "^26.0.12",
     "esbuild": "^0.25.0",
     "ncp": "^2.0.0",
-    "png2icons": "^2.0.1",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.20.5",
     "typescript": "5.6.3",
-    "vite": "^5.4.20",
-    "wait-on": "^9.0.3"
+    "vite": "^5.4.20"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8"
-  },
-  "build": {
-    "appId": "com.phd-thesis-buddy.app",
-    "productName": "PhD Thesis Buddy",
-    "directories": {
-      "output": "release"
-    },
-    "files": [
-      "dist/**/*",
-      "node_modules/**/*",
-      "package.json"
-    ],
-    "win": {
-      "target": [
-        "nsis"
-      ],
-      "icon": "build/icon.png"
-    },
-    "mac": {
-      "target": [
-        "dmg"
-      ],
-      "icon": "build/icon.icns",
-      "category": "public.app-category.education"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "icon": "build/icon.png",
-      "category": "Education"
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "jebbario24",
-        "repo": "phddoctorat"
-      }
-    ]
   }
 }
